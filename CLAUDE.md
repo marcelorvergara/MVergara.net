@@ -66,7 +66,7 @@ Performance ≥ 98 · Accessibility 100 · Best Practices 100 · SEO 100 · FCP 
 ## Deployment
 
 Push to `main` → Cloudflare Pages auto-deploys. No manual deploy step needed.
-The `_redirects` file in `public/` handles SPA routing for Cloudflare Pages.
+No `_redirects` file needed — SSG pre-renders all routes to static HTML, Cloudflare Pages serves them directly. Do NOT add `/* /index.html 200`; Cloudflare rejects it as an infinite loop.
 
 ## Phase 0 (prerequisite — separate repo)
 
