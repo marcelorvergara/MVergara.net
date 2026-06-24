@@ -10,6 +10,7 @@ import { isPlatformBrowser } from '@angular/common';
 export class Footer implements OnInit {
   private readonly platformId = inject(PLATFORM_ID);
   protected readonly loadTime = signal<number | null>(null);
+  protected readonly currentYear = new Date().getFullYear();
 
   ngOnInit(): void {
     if (isPlatformBrowser(this.platformId)) {

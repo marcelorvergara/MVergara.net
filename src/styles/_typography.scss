@@ -43,3 +43,13 @@ a {
     text-decoration: underline;
   }
 }
+
+.section-label {
+  font-size: 0.75rem;
+  font-family: var(--font-mono);
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-12);
+}
