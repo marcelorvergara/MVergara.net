@@ -29,14 +29,14 @@ export const PROJECTS: Project[] = [
     url: 'https://enpsecurechat.com',
     pillar: 'Security & Real-Time Protocol',
     pillarVar: '--color-pillar-security',
-    hook: 'End-to-end encrypted messaging with zero data persistence beyond the session boundary.',
+    hook: 'Enterprise RAG assistant for O&G — FGA enforced inside Qdrant before any chunk is ranked, so restricted documents are mathematically invisible to the LLM.',
     rationale:
-      'Designed with an encrypted WebSocket layer and strict session isolation so that no message payload survives beyond its session boundary, eliminating the risk of retrospective data exposure. Spring Boot\'s reactive stack handles high concurrency without thread-per-connection overhead, sustaining sub-100ms delivery even under bursts.',
+      'Enforcing authorization as a Qdrant must_not filter before embedding ranking — not post-filtering in Java — means restricted documents never influence semantic scores, closing the ranking-signal leak that post-retrieval filtering leaves open. The RAG orchestration is deliberately non-transactional: holding one of Neon\'s five HikariCP connections open during a 15–60 s LLM call would exhaust the pool entirely for all concurrent users.',
     nodes: [
-      { id: 'client', label: 'Client (Angular)', x: 20, y: 50 },
-      { id: 'gateway', label: 'Secure Gateway', x: 120, y: 50 },
-      { id: 'engine', label: 'RT Engine (Spring)', x: 220, y: 50 },
-      { id: 'store', label: 'Session Store', x: 320, y: 50 },
+      { id: 'client', label: 'Angular FE', x: 10, y: 38 },
+      { id: 'gateway', label: 'Spring RAG', x: 120, y: 38 },
+      { id: 'engine', label: 'Qdrant FGA', x: 120, y: 102 },
+      { id: 'store', label: 'Claude + DLP', x: 10, y: 102 },
     ],
     edges: [
       { from: 'client', to: 'gateway' },
@@ -50,14 +50,14 @@ export const PROJECTS: Project[] = [
     url: 'https://fabulainfantil.com',
     pillar: 'AI Engineering & Creative UX',
     pillarVar: '--color-pillar-ai',
-    hook: 'AI-generated children\'s stories with structured prompt engineering for age-appropriate output.',
+    hook: 'Multi-turn GPT-4o mini branches the story across three acts, gpt-image-1 illustrates each — assembled into an animated 3D book in Portuguese for kids aged 0–14.',
     rationale:
-      'Wrapped generative AI model calls behind a structured prompt-engineering layer to enforce age-appropriate, contextually coherent story output rather than exposing raw model responses directly. Angular\'s declarative component model enabled dynamic content injection while preserving the accessibility requirements a child-facing product demands.',
+      'Each story part is a multi-turn conversation with the full choice history forwarded on every request, so the model maintains narrative continuity across three branching acts without any server-side session state. Illustrations land in a temporary GCS path during composition and are re-keyed to a SHA-256 story ID only on share, making the URL deterministic and cacheable while storing nothing until the user explicitly publishes.',
     nodes: [
-      { id: 'ui', label: 'Story UI (Angular)', x: 20, y: 50 },
-      { id: 'prompt', label: 'Prompt Layer', x: 120, y: 50 },
-      { id: 'ai', label: 'AI Model API', x: 220, y: 50 },
-      { id: 'cdn', label: 'Content CDN', x: 320, y: 50 },
+      { id: 'ui', label: 'Next.js UI', x: 10, y: 38 },
+      { id: 'prompt', label: 'Express API', x: 120, y: 38 },
+      { id: 'ai', label: 'GPT-4o mini', x: 120, y: 102 },
+      { id: 'cdn', label: 'GCS / Firestore', x: 10, y: 102 },
     ],
     edges: [
       { from: 'ui', to: 'prompt' },
@@ -71,14 +71,14 @@ export const PROJECTS: Project[] = [
     url: 'https://www.monitoringlinks.com',
     pillar: 'Infrastructure & High Availability',
     pillarVar: '--color-pillar-infra',
-    hook: 'Distributed uptime monitoring with configurable polling and automated alerting.',
+    hook: 'URL uptime monitoring — concurrent checks via Promise.allSettled ensure no slow target delays the fleet, with WhatsApp and SMS alerts fired on threshold breach.',
     rationale:
-      'Built with a configurable polling architecture rather than webhook reliance, enabling passive reliability tracking of any target regardless of whether it supports push notifications. A time-series data model was chosen over relational storage to optimise continuous-write throughput and enable fast historical trend queries.',
+      'Using Promise.allSettled for concurrent URL checks means a single slow or hanging endpoint never blocks the monitoring window for the rest of the fleet — every result is recorded independently of its peers. A dual-database split keeps PostgreSQL for the append-heavy response-time series and MongoDB for OAuth user profile lookups, matching each store to its actual access pattern.',
     nodes: [
-      { id: 'scheduler', label: 'Scheduler', x: 20, y: 50 },
-      { id: 'probes', label: 'Probe Workers', x: 120, y: 50 },
-      { id: 'ts', label: 'Time-Series DB', x: 220, y: 50 },
-      { id: 'alerts', label: 'Alert Engine', x: 320, y: 50 },
+      { id: 'scheduler', label: 'App Engine Cron', x: 10, y: 38 },
+      { id: 'probes', label: 'Express Check', x: 120, y: 38 },
+      { id: 'ts', label: 'PostgreSQL', x: 120, y: 102 },
+      { id: 'alerts', label: 'Twilio Alerts', x: 10, y: 102 },
     ],
     edges: [
       { from: 'scheduler', to: 'probes' },
@@ -92,14 +92,14 @@ export const PROJECTS: Project[] = [
     url: 'https://vergaraverse.com',
     pillar: 'Edge Computing & Telemetry',
     pillarVar: '--color-pillar-edge',
-    hook: 'Local-first hardware telemetry parsing via WebAssembly — zero server compute, sub-ms rendering.',
+    hook: 'GoPro GPMF binary telemetry parsed entirely in-browser via TinyGo WebAssembly — 60 Hz Canvas overlay, frame-accurate WebM export, zero server compute.',
     rationale:
-      'Compiled the binary telemetry parser to WebAssembly via Go/TinyGo to move all heavy parsing workload to the client, eliminating server round-trips and achieving sub-millisecond frame rendering independent of network conditions. This local-first architecture keeps the visualisation layer fully functional even under degraded connectivity.',
+      "TinyGo's lack of reflection support forced every KLV field read to use explicit BigEndian helpers and every result JSON to be built by string concatenation — constraints that produce a parser small enough to fit inside the 64 MB browser heap shared with the 4K video decoder. The Web Worker hosting the WASM instance is terminated immediately after the parse result arrives, releasing the entire WebAssembly.Memory in one atomic step rather than waiting for GC.",
     nodes: [
-      { id: 'hw', label: 'Hardware Feed', x: 20, y: 50 },
-      { id: 'wasm', label: 'Wasm Parser (Go)', x: 120, y: 50 },
-      { id: 'state', label: 'Client State', x: 220, y: 50 },
-      { id: 'viz', label: 'Visualisation', x: 320, y: 50 },
+      { id: 'hw', label: 'GoPro MP4', x: 10, y: 38 },
+      { id: 'wasm', label: 'TinyGo WASM', x: 120, y: 38 },
+      { id: 'state', label: 'IndexedDB', x: 120, y: 102 },
+      { id: 'viz', label: 'Canvas HUD', x: 10, y: 102 },
     ],
     edges: [
       { from: 'hw', to: 'wasm' },

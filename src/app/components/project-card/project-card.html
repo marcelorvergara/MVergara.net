@@ -20,28 +20,14 @@
   </div>
 
   <div class="card__overlay" role="region" [attr.aria-label]="project().name + ' architecture'">
-    <svg
-      class="card__diagram"
-      viewBox="0 0 380 100"
-      xmlns="http://www.w3.org/2000/svg"
-      aria-hidden="true"
-    >
-      @for (edge of project().edges; track edge.from + edge.to) {
-        <line
-          [attr.x1]="getNodeById(edge.from)!.x + 30"
-          [attr.y1]="getNodeById(edge.from)!.y"
-          [attr.x2]="getNodeById(edge.to)!.x"
-          [attr.y2]="getNodeById(edge.to)!.y"
-          class="diagram__edge"
-        />
-      }
+    <div class="card__pipeline">
       @for (node of project().nodes; track node.id) {
-        <g class="diagram__node" [attr.transform]="'translate(' + node.x + ',' + (node.y - 10) + ')'">
-          <rect x="0" y="0" width="80" height="20" rx="4" class="diagram__rect" />
-          <text x="40" y="14" text-anchor="middle" class="diagram__label">{{ node.label }}</text>
-        </g>
+        <span class="pipeline__node">{{ node.label }}</span>
+        @if (!$last) {
+          <span class="pipeline__sep" aria-hidden="true">›</span>
+        }
       }
-    </svg>
+    </div>
 
     <p class="card__rationale">{{ project().rationale }}</p>
 

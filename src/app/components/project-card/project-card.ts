@@ -21,8 +21,4 @@ export class ProjectCard {
       this.overlayOpen.set(false);
     }
   }
-
-  protected getNodeById(id: string) {
-    return this.project().nodes.find(n => n.id === id);
-  }
 }
