@@ -34,15 +34,11 @@
               "src/styles.scss"
             ],
             "server": "src/main.server.ts",
-            "outputMode": "server",
+            "outputMode": "static",
             "security": {
               "allowedHosts": []
             },
-            "ssr": {
-              "entry": "src/server.ts",
-              "experimentalPlatform": "neutral"
-            },
-            "outputPath": "dist"
+            "outputPath": "dist/mvergara-net"
           },
           "configurations": {
             "production": {
