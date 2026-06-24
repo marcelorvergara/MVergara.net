@@ -1,0 +1,140 @@
+.card {
+  position: relative;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-8);
+  cursor: pointer;
+  overflow: hidden;
+  transition: border-color var(--transition-base), box-shadow var(--transition-base);
+
+  &:hover,
+  &:focus-visible {
+    border-color: var(--pillar-color);
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.4);
+    outline: none;
+
+    .card__front {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .card__overlay {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateY(0);
+    }
+  }
+}
+
+.card__front {
+  transition: opacity var(--transition-base);
+}
+
+.card__pillar {
+  display: inline-block;
+  font-size: 0.65rem;
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--pillar-color);
+  border: 1px solid var(--pillar-color);
+  border-radius: 99px;
+  padding: 2px var(--space-3);
+  margin-bottom: var(--space-4);
+  opacity: 0.85;
+}
+
+.card__name {
+  font-size: 1.375rem;
+  font-weight: 600;
+  margin-bottom: var(--space-3);
+
+  a {
+    color: var(--color-text);
+    text-decoration: none;
+
+    &:hover {
+      color: var(--pillar-color);
+      text-decoration: none;
+    }
+  }
+}
+
+.card__hook {
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+  line-height: 1.6;
+  max-width: 100%;
+}
+
+.card__cta {
+  display: block;
+  margin-top: var(--space-6);
+  font-size: 0.75rem;
+  font-family: var(--font-mono);
+  color: var(--color-text-muted);
+  opacity: 0.5;
+}
+
+// Architecture overlay
+.card__overlay {
+  position: absolute;
+  inset: 0;
+  background: var(--color-surface-2);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(var(--space-2));
+  transition: opacity var(--transition-base), transform var(--transition-base);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  overflow: auto;
+}
+
+.card__diagram {
+  width: 100%;
+  height: auto;
+}
+
+.diagram__edge {
+  stroke: var(--pillar-color);
+  stroke-width: 1;
+  opacity: 0.4;
+}
+
+.diagram__rect {
+  fill: var(--color-surface);
+  stroke: var(--pillar-color);
+  stroke-width: 1;
+  opacity: 0.7;
+}
+
+.diagram__label {
+  fill: var(--color-text-muted);
+  font-family: var(--font-mono);
+  font-size: 7px;
+}
+
+.card__rationale {
+  font-size: 0.8rem;
+  line-height: 1.65;
+  color: var(--color-text-muted);
+  max-width: 100%;
+  flex: 1;
+}
+
+.card__link {
+  display: inline-flex;
+  font-size: 0.75rem;
+  font-family: var(--font-mono);
+  color: var(--pillar-color);
+  text-decoration: none;
+  align-self: flex-start;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}

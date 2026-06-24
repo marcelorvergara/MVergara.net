@@ -1,0 +1,24 @@
+<app-hero />
+
+@defer (on idle) {
+  <app-mission-control />
+}
+
+<section id="active-deployments" class="project-matrix" aria-labelledby="projects-heading">
+  <h2 id="projects-heading" class="section-heading">Active Deployments</h2>
+  <div class="project-grid">
+    @for (project of projects; track project.id) {
+      <app-project-card [project]="project" />
+    }
+  </div>
+</section>
+
+<div id="tech-stack">
+  @defer (on viewport) {
+    <app-tech-stack />
+  } @placeholder {
+    <div style="min-height: 400px"></div>
+  }
+</div>
+
+<app-footer />

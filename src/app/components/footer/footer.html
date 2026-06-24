@@ -1,0 +1,22 @@
+<footer class="footer" role="contentinfo">
+  <div class="footer__inner">
+    <div class="footer__links">
+      <a href="https://github.com/marcelorvergara" target="_blank" rel="noopener noreferrer" aria-label="GitHub">
+        GitHub
+      </a>
+      <a href="https://www.linkedin.com/in/mvergara/" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">
+        LinkedIn
+      </a>
+    </div>
+
+    <address class="footer__contact">
+      <a href="mailto:marcelorv@gmail.com">marcelorv&#64;gmail.com</a>
+    </address>
+
+    @if (loadTime() !== null) {
+      <p class="footer__perf text-mono" aria-label="Page performance">
+        Page initialized in {{ loadTime() }}ms via Edge Network
+      </p>
+    }
+  </div>
+</footer>

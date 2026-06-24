@@ -1,0 +1,53 @@
+<article
+  class="card"
+  [style.--pillar-color]="'var(' + project().pillarVar + ')'"
+  tabindex="0"
+  [attr.aria-label]="project().name + ' — ' + project().pillar"
+>
+  <div class="card__front">
+    <span class="card__pillar">{{ project().pillar }}</span>
+    <h3 class="card__name">
+      <a [href]="project().url" target="_blank" rel="noopener noreferrer">
+        {{ project().name }}
+      </a>
+    </h3>
+    <p class="card__hook">{{ project().hook }}</p>
+    <span class="card__cta" aria-hidden="true">View architecture ↗</span>
+  </div>
+
+  <div class="card__overlay" role="region" [attr.aria-label]="project().name + ' architecture'">
+    <svg
+      class="card__diagram"
+      viewBox="0 0 380 100"
+      xmlns="http://www.w3.org/2000/svg"
+      aria-hidden="true"
+    >
+      @for (edge of project().edges; track edge.from + edge.to) {
+        <line
+          [attr.x1]="getNodeById(edge.from)!.x + 30"
+          [attr.y1]="getNodeById(edge.from)!.y"
+          [attr.x2]="getNodeById(edge.to)!.x"
+          [attr.y2]="getNodeById(edge.to)!.y"
+          class="diagram__edge"
+        />
+      }
+      @for (node of project().nodes; track node.id) {
+        <g class="diagram__node" [attr.transform]="'translate(' + node.x + ',' + (node.y - 10) + ')'">
+          <rect x="0" y="0" width="80" height="20" rx="4" class="diagram__rect" />
+          <text x="40" y="14" text-anchor="middle" class="diagram__label">{{ node.label }}</text>
+        </g>
+      }
+    </svg>
+
+    <p class="card__rationale">{{ project().rationale }}</p>
+
+    <a
+      [href]="project().url"
+      target="_blank"
+      rel="noopener noreferrer"
+      class="card__link"
+    >
+      Visit {{ project().name }} ↗
+    </a>
+  </div>
+</article>

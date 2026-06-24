@@ -1,0 +1,67 @@
+<section class="mc" id="mission-control" aria-labelledby="mc-heading">
+  <div class="mc__inner">
+    <div class="mc__header">
+      <h2 id="mc-heading" class="mc__heading text-mono">System Status</h2>
+
+      @switch (state()) {
+        @case ('loading') {
+          <span class="mc__badge mc__badge--loading">Connecting&hellip;</span>
+        }
+        @case ('live') {
+          <span class="mc__badge mc__badge--live">Live</span>
+        }
+        @case ('fallback') {
+          <span class="mc__badge mc__badge--fallback">
+            @if (generatedAt()) {
+              Snapshot · {{ formatTime(generatedAt()!) }}
+            } @else {
+              Metrics stream paused
+            }
+          </span>
+        }
+      }
+    </div>
+
+    <div class="mc__frame" aria-label="Monitored by Monitoring Links">
+      <div class="mc__frame-header">
+        <span class="mc__frame-label">Monitoring Links</span>
+        <a
+          href="https://www.monitoringlinks.com"
+          class="mc__frame-link"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Open Monitoring Links"
+        >monitoringlinks.com ↗</a>
+      </div>
+
+      <div class="mc__grid" role="list" aria-label="Service status indicators">
+        @for (svc of services(); track svc.name) {
+          <div
+            class="mc__item"
+            [class.mc__item--up]="svc.status === 'up'"
+            [class.mc__item--down]="svc.status === 'down'"
+            [class.mc__item--loading]="state() === 'loading'"
+            role="listitem"
+            [attr.aria-label]="svc.name + ': ' + svc.status"
+          >
+            <span class="mc__dot" aria-hidden="true"></span>
+            <span class="mc__name">{{ svc.name }}</span>
+            @if (svc.latency_ms !== undefined) {
+              <span class="mc__status">{{ svc.latency_ms }}ms</span>
+            } @else {
+              <span class="mc__status">{{ svc.status === 'unknown' ? '—' : svc.status }}</span>
+            }
+          </div>
+        } @empty {
+          @for (name of ['ENP Secure Chat', 'Fábula Infantil', 'MVergara.net', 'VergaraVerse']; track name) {
+            <div class="mc__item mc__item--loading" role="listitem" aria-label="Loading status">
+              <span class="mc__dot" aria-hidden="true"></span>
+              <span class="mc__name">{{ name }}</span>
+              <span class="mc__status">—</span>
+            </div>
+          }
+        }
+      </div>
+    </div>
+  </div>
+</section>
