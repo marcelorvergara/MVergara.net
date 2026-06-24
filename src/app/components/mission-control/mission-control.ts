@@ -1,9 +1,10 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { StatusService, ServiceHealth, WidgetState } from '../../services/status.service';
+import { SparklineComponent } from './sparkline/sparkline';
 
 @Component({
   selector: 'app-mission-control',
-  imports: [],
+  imports: [SparklineComponent],
   templateUrl: './mission-control.html',
   styleUrl: './mission-control.scss',
 })

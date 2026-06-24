@@ -1,0 +1,30 @@
+.sparkline {
+  display: block;
+  width: 100%;
+  height: 28px;
+  overflow: visible;
+
+  &__line {
+    fill: none;
+    stroke: var(--color-pillar-infra);
+    stroke-width: 1.5;
+    stroke-linejoin: round;
+    stroke-linecap: round;
+  }
+
+  &__warning {
+    stroke: var(--color-pillar-edge);
+    stroke-width: 1;
+    stroke-dasharray: 3 3;
+  }
+
+  &__danger {
+    stroke: var(--color-pillar-security);
+    stroke-width: 1;
+    stroke-dasharray: 3 3;
+  }
+
+  &__down {
+    fill: var(--color-pillar-security);
+  }
+}

@@ -1,0 +1,19 @@
+@if (history.length > 0) {
+  <svg
+    class="sparkline"
+    viewBox="0 0 200 28"
+    preserveAspectRatio="none"
+    aria-hidden="true"
+  >
+    @if (dangerY !== null) {
+      <line x1="0" [attr.y1]="dangerY" x2="200" [attr.y2]="dangerY" class="sparkline__danger" />
+    }
+    @if (warningY !== null) {
+      <line x1="0" [attr.y1]="warningY" x2="200" [attr.y2]="warningY" class="sparkline__warning" />
+    }
+    <polyline [attr.points]="polylinePoints" class="sparkline__line" />
+    @for (pt of downPoints; track pt.ts) {
+      <circle [attr.cx]="ptX(pt)" [attr.cy]="ptY(pt)" r="2" class="sparkline__down" />
+    }
+  </svg>
+}

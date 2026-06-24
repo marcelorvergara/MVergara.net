@@ -4,11 +4,24 @@ import { Observable, of, timeout, catchError } from 'rxjs';
 
 export type ServiceStatus = 'up' | 'down' | 'unknown';
 
+export interface HistoryPoint {
+  ts: string;
+  latency_ms: number;
+  status: ServiceStatus;
+}
+
+export interface Thresholds {
+  warning: number;
+  danger: number;
+}
+
 export interface ServiceHealth {
   name: string;
   url: string;
   status: ServiceStatus;
   latency_ms?: number;
+  thresholds?: Thresholds;
+  history?: HistoryPoint[];
 }
 
 export interface StatusResponse {

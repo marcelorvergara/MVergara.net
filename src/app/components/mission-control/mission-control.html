@@ -44,20 +44,27 @@
             role="listitem"
             [attr.aria-label]="svc.name + ': ' + svc.status"
           >
-            <span class="mc__dot" aria-hidden="true"></span>
-            <span class="mc__name">{{ svc.name }}</span>
-            @if (svc.latency_ms !== undefined) {
-              <span class="mc__status">{{ svc.latency_ms }}ms</span>
-            } @else {
-              <span class="mc__status">{{ svc.status === 'unknown' ? '—' : svc.status }}</span>
+            <div class="mc__item-row">
+              <span class="mc__dot" aria-hidden="true"></span>
+              <span class="mc__name">{{ svc.name }}</span>
+              @if (svc.latency_ms !== undefined) {
+                <span class="mc__status">{{ svc.latency_ms }}ms</span>
+              } @else {
+                <span class="mc__status">{{ svc.status === 'unknown' ? '—' : svc.status }}</span>
+              }
+            </div>
+            @if (svc.history?.length) {
+              <app-sparkline [history]="svc.history!" [thresholds]="svc.thresholds" />
             }
           </div>
         } @empty {
           @for (name of ['ENP Secure Chat', 'Fábula Infantil', 'MVergara.net', 'VergaraVerse']; track name) {
             <div class="mc__item mc__item--loading" role="listitem" aria-label="Loading status">
-              <span class="mc__dot" aria-hidden="true"></span>
-              <span class="mc__name">{{ name }}</span>
-              <span class="mc__status">—</span>
+              <div class="mc__item-row">
+                <span class="mc__dot" aria-hidden="true"></span>
+                <span class="mc__name">{{ name }}</span>
+                <span class="mc__status">—</span>
+              </div>
             </div>
           }
         }
