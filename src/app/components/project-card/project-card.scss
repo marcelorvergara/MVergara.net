@@ -9,7 +9,8 @@
   transition: border-color var(--transition-base), box-shadow var(--transition-base);
 
   &:hover,
-  &:focus-visible {
+  &:focus-visible,
+  &.card--open {
     border-color: var(--pillar-color);
     box-shadow: 0 0 30px rgba(0, 0, 0, 0.4);
     outline: none;

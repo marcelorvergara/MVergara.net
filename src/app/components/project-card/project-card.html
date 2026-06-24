@@ -1,8 +1,12 @@
 <article
   class="card"
+  [class.card--open]="overlayOpen()"
   [style.--pillar-color]="'var(' + project().pillarVar + ')'"
   tabindex="0"
   [attr.aria-label]="project().name + ' — ' + project().pillar"
+  (click)="toggle()"
+  (keydown.enter)="toggle()"
+  (keydown.space)="toggle(); $event.preventDefault()"
 >
   <div class="card__front">
     <span class="card__pillar">{{ project().pillar }}</span>
@@ -46,6 +50,7 @@
       target="_blank"
       rel="noopener noreferrer"
       class="card__link"
+      (click)="$event.stopPropagation()"
     >
       Visit {{ project().name }} ↗
     </a>
