@@ -1,3 +1,12 @@
+<nav class="site-nav" aria-label="Page sections">
+  <a href="#" class="site-nav__brand text-mono" aria-label="Back to top">MV</a>
+  <div class="site-nav__links">
+    <a href="#mission-control">Status</a>
+    <a href="#active-deployments">Deployments</a>
+    <a href="#tech-stack">Stack</a>
+  </div>
+</nav>
+
 <main>
   <app-hero />
 
@@ -6,7 +15,7 @@
   }
 
   <section id="active-deployments" class="project-matrix" aria-labelledby="projects-heading">
-    <h2 id="projects-heading" class="section-heading">Active Deployments</h2>
+    <h2 id="projects-heading" class="section-label text-mono">Active Deployments</h2>
     <div class="project-grid">
       @for (project of projects; track project.id) {
         <app-project-card [project]="project" />

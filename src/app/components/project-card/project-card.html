@@ -3,7 +3,9 @@
   [class.card--open]="overlayOpen()"
   [style.--pillar-color]="'var(' + project().pillarVar + ')'"
   tabindex="0"
+  role="button"
   [attr.aria-label]="project().name + ' — ' + project().pillar"
+  [attr.aria-expanded]="overlayOpen()"
   (click)="toggle()"
   (keydown.enter)="toggle()"
   (keydown.space)="toggle(); $event.preventDefault()"
@@ -16,7 +18,7 @@
       </a>
     </h3>
     <p class="card__hook">{{ project().hook }}</p>
-    <span class="card__cta" aria-hidden="true">View architecture ↗</span>
+    <span class="card__cta">View architecture ↗</span>
   </div>
 
   <div class="card__overlay" role="region" [attr.aria-label]="project().name + ' architecture'">

@@ -1,6 +1,6 @@
 .hero {
   position: relative;
-  min-height: 100dvh;
+  min-height: 90dvh;
   display: flex;
   align-items: center;
   overflow: hidden;
@@ -58,6 +58,42 @@
   display: flex;
   gap: var(--space-4);
   flex-wrap: wrap;
+}
+
+.hero__scroll {
+  position: absolute;
+  bottom: var(--space-8);
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  color: var(--color-text-muted);
+  text-decoration: none;
+  opacity: 0.5;
+  transition: opacity var(--transition-base);
+  animation: scroll-bounce 2s ease-in-out infinite;
+
+  &:hover {
+    opacity: 1;
+    text-decoration: none;
+  }
+}
+
+.hero__scroll-chevron {
+  display: block;
+  width: 12px;
+  height: 12px;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(45deg);
+}
+
+@keyframes scroll-bounce {
+  0%, 100% { transform: translateX(-50%) translateY(0); }
+  50%       { transform: translateX(-50%) translateY(6px); }
 }
 
 // Shared button styles (reusable across page)

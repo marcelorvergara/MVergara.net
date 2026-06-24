@@ -1,17 +1,63 @@
+.site-nav {
+  position: fixed;
+  top: 0;
+  inset-inline: 0;
+  z-index: var(--z-modal);
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  padding: var(--space-4) var(--space-8);
+  background: rgba(9, 9, 15, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--color-border);
+
+  @media (max-width: 480px) {
+    padding: var(--space-3) var(--space-4);
+    gap: var(--space-4);
+  }
+}
+
+.site-nav__brand {
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  color: var(--color-accent);
+  text-decoration: none;
+
+  &:hover {
+    color: var(--color-text);
+    text-decoration: none;
+  }
+}
+
+.site-nav__links {
+  display: flex;
+  gap: var(--space-6);
+  margin-inline-start: auto;
+
+  a {
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+    text-decoration: none;
+    letter-spacing: 0.04em;
+    transition: color var(--transition-fast);
+
+    &:hover {
+      color: var(--color-text);
+      text-decoration: none;
+    }
+  }
+}
+
+main {
+  padding-top: 3rem;
+}
+
 .project-matrix {
   padding: var(--space-24) var(--space-8);
   max-width: 1200px;
   margin-inline: auto;
-}
-
-.section-heading {
-  margin-bottom: var(--space-12);
-  color: var(--color-text-muted);
-  font-size: 0.75rem;
-  font-family: var(--font-mono);
-  text-transform: uppercase;
-  letter-spacing: 0.15em;
-  font-weight: 400;
 }
 
 .project-grid {

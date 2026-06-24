@@ -50,7 +50,7 @@ export const PROJECTS: Project[] = [
     url: 'https://fabulainfantil.com',
     pillar: 'AI Engineering & Creative UX',
     pillarVar: '--color-pillar-ai',
-    hook: 'Multi-turn GPT-4o mini branches the story across three acts, gpt-image-1 illustrates each — assembled into an animated 3D book in Portuguese for kids aged 0–14.',
+    hook: 'Stateless multi-turn narrative control via GPT-4o mini: full choice history forwarded each request maintains continuity across three branching acts, with gpt-image-1 illustrations assembled into an animated 3D book.',
     rationale:
       'Each story part is a multi-turn conversation with the full choice history forwarded on every request, so the model maintains narrative continuity across three branching acts without any server-side session state. Illustrations land in a temporary GCS path during composition and are re-keyed to a SHA-256 story ID only on share, making the URL deterministic and cacheable while storing nothing until the user explicitly publishes.',
     nodes: [

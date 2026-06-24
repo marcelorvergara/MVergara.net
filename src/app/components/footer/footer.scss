@@ -19,6 +19,12 @@
   }
 }
 
+.footer__copyright {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  letter-spacing: 0.08em;
+}
+
 .footer__links {
   display: flex;
   gap: var(--space-6);
@@ -45,6 +51,15 @@
     &:hover {
       color: var(--color-accent);
       text-decoration: none;
+    }
+  }
+
+  .footer__cta {
+    color: var(--color-accent);
+    font-weight: 500;
+
+    &:hover {
+      color: var(--color-text);
     }
   }
 
