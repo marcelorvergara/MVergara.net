@@ -22,6 +22,29 @@
   margin-inline: auto;
 }
 
+.hero__avatar {
+  width: 80px;
+  height: 80px;
+  margin-bottom: var(--space-6);
+  border-radius: 50%;
+  overflow: hidden;
+  border: 1.5px solid var(--color-accent);
+  box-shadow: 0 0 16px rgba(91, 138, 245, 0.35);
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  @media (max-width: 640px) {
+    width: 60px;
+    height: 60px;
+    margin-bottom: var(--space-4);
+  }
+}
+
 .hero__label {
   font-size: clamp(0.55rem, 2.2vw, 0.75rem);
   letter-spacing: 0.15em;
@@ -61,6 +84,35 @@
   flex-wrap: wrap;
 }
 
+.hero__social {
+  display: flex;
+  gap: var(--space-4);
+  margin-top: var(--space-6);
+
+  a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    color: var(--color-text-muted);
+    transition: color var(--transition-fast), transform var(--transition-fast);
+    text-decoration: none;
+
+    &:hover {
+      color: var(--color-accent);
+      transform: translateY(-2px);
+      text-decoration: none;
+    }
+
+    svg {
+      width: 18px;
+      height: 18px;
+      fill: currentColor;
+    }
+  }
+}
+
 .hero__scroll {
   position: absolute;
   bottom: var(--space-8);
@@ -97,41 +149,3 @@
   50%       { transform: translateX(-50%) translateY(6px); }
 }
 
-// Shared button styles (reusable across page)
-.btn {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
-  padding: var(--space-3) var(--space-6);
-  border-radius: var(--radius-md);
-  font-size: 0.875rem;
-  font-weight: 500;
-  cursor: pointer;
-  border: none;
-  transition: background var(--transition-fast), color var(--transition-fast),
-    box-shadow var(--transition-fast);
-  text-decoration: none;
-
-  &--primary {
-    background: var(--color-accent);
-    color: #09090f;
-
-    &:hover {
-      background: #7aa3f7;
-      box-shadow: 0 0 20px var(--color-accent-glow);
-      text-decoration: none;
-    }
-  }
-
-  &--ghost {
-    background: transparent;
-    color: var(--color-text);
-    border: 1px solid var(--color-border);
-
-    &:hover {
-      background: var(--color-surface);
-      border-color: rgba(255, 255, 255, 0.15);
-      text-decoration: none;
-    }
-  }
-}

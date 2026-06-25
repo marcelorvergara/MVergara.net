@@ -44,25 +44,6 @@
   font-style: normal;
   margin-inline-start: auto;
 
-  a {
-    font-size: 0.875rem;
-    color: var(--color-text-muted);
-
-    &:hover {
-      color: var(--color-accent);
-      text-decoration: none;
-    }
-  }
-
-  .footer__cta {
-    color: var(--color-accent);
-    font-weight: 500;
-
-    &:hover {
-      color: var(--color-text);
-    }
-  }
-
   @media (max-width: 600px) {
     margin-inline-start: 0;
   }

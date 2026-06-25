@@ -12,6 +12,7 @@ export class Hero implements AfterViewInit, OnDestroy {
 
   private readonly platformId = inject(PLATFORM_ID);
   private animationId = 0;
+  private resizeObserver?: ResizeObserver;
 
   ngAfterViewInit(): void {
     if (isPlatformBrowser(this.platformId)) {
@@ -22,6 +23,7 @@ export class Hero implements AfterViewInit, OnDestroy {
   ngOnDestroy(): void {
     if (isPlatformBrowser(this.platformId)) {
       cancelAnimationFrame(this.animationId);
+      this.resizeObserver?.disconnect();
     }
   }
 
@@ -30,26 +32,13 @@ export class Hero implements AfterViewInit, OnDestroy {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    const resize = () => {
-      canvas.width = canvas.offsetWidth;
-      canvas.height = canvas.offsetHeight;
-    };
-    resize();
-    window.addEventListener('resize', resize);
-
     interface Particle {
       x: number; y: number; vx: number; vy: number; radius: number;
     }
 
-    const particles: Particle[] = Array.from({ length: 60 }, () => ({
-      x: Math.random() * canvas.width,
-      y: Math.random() * canvas.height,
-      vx: (Math.random() - 0.5) * 0.4,
-      vy: (Math.random() - 0.5) * 0.4,
-      radius: Math.random() * 1.5 + 0.5,
-    }));
-
+    let particles: Particle[] = [];
     const connectionDistance = 120;
+    let started = false;
 
     const draw = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -86,6 +75,24 @@ export class Hero implements AfterViewInit, OnDestroy {
       this.animationId = requestAnimationFrame(draw);
     };
 
-    draw();
+    this.resizeObserver = new ResizeObserver(entries => {
+      const { width, height } = entries[0].contentRect;
+      canvas.width = width;
+      canvas.height = height;
+
+      if (!started && width > 0 && height > 0) {
+        started = true;
+        particles = Array.from({ length: 60 }, () => ({
+          x: Math.random() * width,
+          y: Math.random() * height,
+          vx: (Math.random() - 0.5) * 0.4,
+          vy: (Math.random() - 0.5) * 0.4,
+          radius: Math.random() * 1.5 + 0.5,
+        }));
+        draw();
+      }
+    });
+
+    this.resizeObserver.observe(canvas);
   }
 }

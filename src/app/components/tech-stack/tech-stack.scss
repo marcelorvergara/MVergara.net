@@ -1,5 +1,5 @@
 .stack {
-  padding: var(--space-24) var(--space-8);
+  padding: var(--space-24) var(--space-8) var(--space-12);
 }
 
 .stack__inner {
@@ -58,4 +58,37 @@
   border: 1px solid var(--color-border);
   border-radius: 99px;
   color: var(--color-text-muted);
+}
+
+.stack__certs {
+  margin-top: var(--space-12);
+  padding-top: var(--space-8);
+  border-top: 1px solid var(--color-border);
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-8);
+  flex-wrap: wrap;
+}
+
+.stack__certs-label {
+  font-size: 0.65rem;
+  letter-spacing: 0.15em;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+.stack__certs-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.cert-badge {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  padding: 3px var(--space-3);
+  background: transparent;
+  border: 1px solid rgba(91, 138, 245, 0.35);
+  border-radius: 99px;
+  color: var(--color-accent);
 }
