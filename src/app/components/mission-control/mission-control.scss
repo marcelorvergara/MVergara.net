@@ -86,6 +86,21 @@
   }
 }
 
+.mc__progress-bar {
+  height: 2px;
+  background: var(--color-surface-2);
+  overflow: hidden;
+
+  &::after {
+    content: '';
+    display: block;
+    height: 100%;
+    width: 35%;
+    background: var(--color-accent);
+    animation: progress-slide 1.4s ease-in-out infinite;
+  }
+}
+
 .mc__grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -145,4 +160,9 @@
 @keyframes pulse {
   0%, 100% { opacity: 0.3; }
   50% { opacity: 1; }
+}
+
+@keyframes progress-slide {
+  0%   { transform: translateX(-200%); }
+  100% { transform: translateX(400%); }
 }

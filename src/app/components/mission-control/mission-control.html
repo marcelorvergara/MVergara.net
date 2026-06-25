@@ -34,6 +34,10 @@
         >monitoringlinks.com ↗</a>
       </div>
 
+      @if (state() === 'loading') {
+        <div class="mc__progress-bar" role="progressbar" aria-label="Loading service status"></div>
+      }
+
       <div class="mc__grid" role="list" aria-label="Service status indicators">
         @for (svc of services(); track svc.name) {
           <div
