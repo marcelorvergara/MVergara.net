@@ -15,11 +15,19 @@ export interface Thresholds {
   danger: number;
 }
 
+export interface LastIncident {
+  started_at: string;
+  ended_at: string;
+  duration_seconds: number;
+}
+
 export interface ServiceHealth {
   name: string;
   url: string;
   status: ServiceStatus;
   latency_ms?: number;
+  uptime_30d: number | null;
+  last_incident: LastIncident | null;
   thresholds?: Thresholds;
   history?: HistoryPoint[];
 }
@@ -37,10 +45,10 @@ const TIMEOUT_MS = 2000;
 const FALLBACK_DATA: StatusResponse = {
   generated_at: new Date().toISOString(),
   services: [
-    { name: 'ENP Secure Chat', url: 'https://enpsecurechat.com',     status: 'unknown' },
-    { name: 'Fábula Infantil', url: 'https://fabulainfantil.com.br', status: 'unknown' },
-    { name: 'MVergara.net',    url: 'https://mvergara.net',          status: 'unknown' },
-    { name: 'VergaraVerse',    url: 'https://vergaraverse.com',      status: 'unknown' },
+    { name: 'ENP Secure Chat', url: 'https://enpsecurechat.com',     status: 'unknown', uptime_30d: null, last_incident: null },
+    { name: 'Fábula Infantil', url: 'https://fabulainfantil.com.br', status: 'unknown', uptime_30d: null, last_incident: null },
+    { name: 'MVergara.net',    url: 'https://mvergara.net',          status: 'unknown', uptime_30d: null, last_incident: null },
+    { name: 'VergaraVerse',    url: 'https://vergaraverse.com',      status: 'unknown', uptime_30d: null, last_incident: null },
   ],
 };
 

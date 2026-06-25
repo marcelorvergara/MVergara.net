@@ -60,6 +60,16 @@
             @if (svc.history?.length) {
               <app-sparkline [history]="svc.history!" [thresholds]="svc.thresholds" />
             }
+            @if (svc.uptime_30d !== null || svc.last_incident) {
+              <div class="mc__meta">
+                @if (svc.uptime_30d !== null) {
+                  <span class="mc__uptime">{{ svc.uptime_30d }}% uptime</span>
+                }
+                @if (svc.last_incident) {
+                  <span class="mc__incident">last outage {{ formatDuration(svc.last_incident.duration_seconds) }} · {{ formatTimeAgo(svc.last_incident.ended_at) }}</span>
+                }
+              </div>
+            }
           </div>
         } @empty {
           @for (name of ['ENP Secure Chat', 'Fábula Infantil', 'MVergara.net', 'VergaraVerse']; track name) {

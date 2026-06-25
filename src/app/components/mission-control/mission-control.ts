@@ -36,4 +36,21 @@ export class MissionControl implements OnInit {
       return iso;
     }
   }
+
+  protected formatDuration(seconds: number): string {
+    if (seconds < 60) return `${seconds}s`;
+    const mins = Math.round(seconds / 60);
+    if (mins < 60) return `${mins} min`;
+    const h = Math.floor(mins / 60), m = mins % 60;
+    return m > 0 ? `${h}h ${m}m` : `${h}h`;
+  }
+
+  protected formatTimeAgo(isoString: string): string {
+    const diff = Date.now() - new Date(isoString).getTime();
+    const mins = Math.floor(diff / 60_000);
+    if (mins < 60) return `${mins}m ago`;
+    const hours = Math.floor(mins / 60);
+    if (hours < 24) return `${hours}h ago`;
+    return `${Math.floor(hours / 24)}d ago`;
+  }
 }
