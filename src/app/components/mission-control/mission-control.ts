@@ -16,6 +16,17 @@ export class MissionControl implements OnInit {
   protected readonly generatedAt = signal<string | null>(null);
 
   ngOnInit(): void {
+    this.load();
+  }
+
+  protected refresh(): void {
+    this.state.set('loading');
+    this.services.set([]);
+    this.generatedAt.set(null);
+    this.load();
+  }
+
+  private load(): void {
     this.statusService.fetchStatus().subscribe({
       next: (response) => {
         this.services.set(response.services);

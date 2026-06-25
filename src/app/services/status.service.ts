@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, of, timeout, catchError } from 'rxjs';
+import { Observable, of, timeout, retry, catchError } from 'rxjs';
 
 export type ServiceStatus = 'up' | 'down' | 'unknown';
 
@@ -40,7 +40,7 @@ export interface StatusResponse {
 export type WidgetState = 'loading' | 'live' | 'fallback';
 
 const STATUS_API = 'https://api.monitoringlinks.com/api/public/status';
-const TIMEOUT_MS = 2000;
+const TIMEOUT_MS = 10_000;
 
 const FALLBACK_DATA: StatusResponse = {
   generated_at: new Date().toISOString(),
@@ -59,6 +59,7 @@ export class StatusService {
   fetchStatus(): Observable<StatusResponse> {
     return this.http.get<StatusResponse>(STATUS_API).pipe(
       timeout(TIMEOUT_MS),
+      retry(1),
       catchError(() => of(FALLBACK_DATA)),
     );
   }

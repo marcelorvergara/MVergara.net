@@ -31,7 +31,7 @@ Output directory for Cloudflare Pages: `dist/mvergara-net/browser`
 | `src/app/data/projects.data.ts` | Static data for all 4 project cards (hook, rationale, pipeline nodes) |
 | `src/app/components/project-card/` | Card with click-to-pin overlay showing pipeline + rationale |
 | `src/app/components/mission-control/` | Live status widget (StatusService + circuit breaker) |
-| `src/app/services/status.service.ts` | Fetches `/api/public/status` from Monitoring Links, 2 s timeout + fallback |
+| `src/app/services/status.service.ts` | Fetches `/api/public/status` from Monitoring Links, 10 s timeout + 1 auto-retry + fallback + manual refresh |
 
 ## Design tokens (from `_tokens.scss`)
 
@@ -72,6 +72,6 @@ No `_redirects` file needed — SSG pre-renders all routes to static HTML, Cloud
 
 The Mission Control widget needs a public endpoint on Monitoring Links:
 `GET https://monitoringlinks.com/api/public/status`
-Returns JSON with `{ generated_at, services: [{ name, url, status, latency_ms }] }`.
+Returns JSON with `{ generated_at, services: [{ name, url, status, latency_ms?, uptime_30d, last_incident, thresholds?, history? }] }`.
 CORS must allow `https://mvergara.net` and `http://localhost:4200`.
 Until this endpoint exists, the widget falls back to a static mock in `status.service.ts`.
