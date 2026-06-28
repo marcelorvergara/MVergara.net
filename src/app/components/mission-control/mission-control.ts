@@ -49,6 +49,7 @@ export class MissionControl implements OnInit {
   }
 
   protected formatDuration(seconds: number): string {
+    if (seconds <= 0) return '< 1s';
     if (seconds < 60) return `${seconds}s`;
     const mins = Math.round(seconds / 60);
     if (mins < 60) return `${mins} min`;
