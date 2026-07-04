@@ -27,7 +27,13 @@
       <div class="mc__frame-header">
         <div class="mc__frame-title">
           <span class="mc__frame-label">Monitoring Links</span>
-          <span class="mc__frame-interval">checks every 5m</span>
+          <span class="mc__frame-interval">
+            @if (state() === 'live') {
+              next check in {{ formatCountdown(secondsUntilNextCheck()) }}
+            } @else {
+              checks every 5m
+            }
+          </span>
         </div>
         <a
           href="https://www.monitoringlinks.com"

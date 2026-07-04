@@ -71,7 +71,7 @@ export const PROJECTS: Project[] = [
     url: 'https://www.monitoringlinks.com',
     pillar: 'Infrastructure & High Availability',
     pillarVar: '--color-pillar-infra',
-    hook: 'URL uptime monitoring — GCP Pub/Sub fans out one check per URL so the 10-minute cron returns in milliseconds regardless of fleet size, with OIDC-authenticated push delivery and a dead-letter topic ensuring no threshold alert is ever silently dropped.',
+    hook: 'URL uptime monitoring — GCP Pub/Sub fans out one check per URL so the 5-minute cron returns in milliseconds regardless of fleet size, with OIDC-authenticated push delivery and a dead-letter topic ensuring no threshold alert is ever silently dropped.',
     rationale:
       'Moving from in-process Promise.allSettled fan-out to a Pub/Sub topic per check means the cron handler now returns in milliseconds no matter how many URLs are registered — the actual HTTP probing is scaled by Pub/Sub push delivery, not bounded by a single Node event loop. Alert publishing is deliberately fire-and-forget on a second topic with its own dead-letter queue: a Twilio outage or malformed payload can exhaust its 5 retry attempts and land in alert-events-dlt without ever blocking or slowing the check-recording path every other URL depends on.',
     nodes: [

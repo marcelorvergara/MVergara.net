@@ -1,8 +1,11 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, signal } from '@angular/core';
 import { StatusService, ServiceHealth, PipelineHealth, WidgetState } from '../../services/status.service';
 import { SparklineComponent } from './sparkline/sparkline';
 import { PipelineHealthComponent } from './pipeline-health/pipeline-health';
 import { formatDuration } from '../../utils/format-duration';
+
+const CHECK_INTERVAL_S = 300;
+const COUNTDOWN_TICK_S = 10;
 
 @Component({
   selector: 'app-mission-control',
@@ -10,16 +13,24 @@ import { formatDuration } from '../../utils/format-duration';
   templateUrl: './mission-control.html',
   styleUrl: './mission-control.scss',
 })
-export class MissionControl implements OnInit {
+export class MissionControl implements OnInit, OnDestroy {
   private readonly statusService = inject(StatusService);
 
   protected readonly state = signal<WidgetState>('loading');
   protected readonly services = signal<ServiceHealth[]>([]);
   protected readonly generatedAt = signal<string | null>(null);
   protected readonly pipelineHealth = signal<PipelineHealth | null>(null);
+  protected readonly secondsUntilNextCheck = signal(CHECK_INTERVAL_S);
+
+  private countdownHandle?: ReturnType<typeof setInterval>;
 
   ngOnInit(): void {
     this.load();
+    this.countdownHandle = setInterval(() => this.tick(), COUNTDOWN_TICK_S * 1000);
+  }
+
+  ngOnDestroy(): void {
+    clearInterval(this.countdownHandle);
   }
 
   protected refresh(): void {
@@ -27,7 +38,24 @@ export class MissionControl implements OnInit {
     this.services.set([]);
     this.generatedAt.set(null);
     this.pipelineHealth.set(null);
+    this.secondsUntilNextCheck.set(CHECK_INTERVAL_S);
     this.load();
+  }
+
+  private tick(): void {
+    const remaining = this.secondsUntilNextCheck() - COUNTDOWN_TICK_S;
+    if (remaining > 0) {
+      this.secondsUntilNextCheck.set(remaining);
+      return;
+    }
+    this.secondsUntilNextCheck.set(CHECK_INTERVAL_S);
+    this.load();
+  }
+
+  protected formatCountdown(seconds: number): string {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `${m}:${s.toString().padStart(2, '0')}`;
   }
 
   private load(): void {
