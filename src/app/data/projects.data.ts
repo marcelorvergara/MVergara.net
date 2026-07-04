@@ -71,19 +71,19 @@ export const PROJECTS: Project[] = [
     url: 'https://www.monitoringlinks.com',
     pillar: 'Infrastructure & High Availability',
     pillarVar: '--color-pillar-infra',
-    hook: 'URL uptime monitoring — concurrent checks via Promise.allSettled ensure no slow target delays the fleet, with WhatsApp and SMS alerts fired on threshold breach.',
+    hook: 'URL uptime monitoring — GCP Pub/Sub fans out one check per URL so the 10-minute cron returns in milliseconds regardless of fleet size, with OIDC-authenticated push delivery and a dead-letter topic ensuring no threshold alert is ever silently dropped.',
     rationale:
-      'Using Promise.allSettled for concurrent URL checks means a single slow or hanging endpoint never blocks the monitoring window for the rest of the fleet — every result is recorded independently of its peers. A dual-database split keeps PostgreSQL for the append-heavy response-time series and MongoDB for OAuth user profile lookups, matching each store to its actual access pattern.',
+      'Moving from in-process Promise.allSettled fan-out to a Pub/Sub topic per check means the cron handler now returns in milliseconds no matter how many URLs are registered — the actual HTTP probing is scaled by Pub/Sub push delivery, not bounded by a single Node event loop. Alert publishing is deliberately fire-and-forget on a second topic with its own dead-letter queue: a Twilio outage or malformed payload can exhaust its 5 retry attempts and land in alert-events-dlt without ever blocking or slowing the check-recording path every other URL depends on.',
     nodes: [
       { id: 'scheduler', label: 'App Engine Cron', x: 10, y: 38 },
-      { id: 'probes', label: 'Express Check', x: 120, y: 38 },
-      { id: 'ts', label: 'PostgreSQL', x: 120, y: 102 },
-      { id: 'alerts', label: 'Twilio Alerts', x: 10, y: 102 },
+      { id: 'queue', label: 'Pub/Sub Fanout', x: 120, y: 38 },
+      { id: 'worker', label: 'Check + Postgres', x: 120, y: 102 },
+      { id: 'alerts', label: 'Twilio + DLQ', x: 10, y: 102 },
     ],
     edges: [
-      { from: 'scheduler', to: 'probes' },
-      { from: 'probes', to: 'ts' },
-      { from: 'ts', to: 'alerts' },
+      { from: 'scheduler', to: 'queue' },
+      { from: 'queue', to: 'worker' },
+      { from: 'worker', to: 'alerts' },
     ],
   },
   {
