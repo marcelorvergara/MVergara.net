@@ -84,6 +84,10 @@
           }
         }
       </div>
+
+      @if (pipelineHealth(); as ph) {
+        <app-pipeline-health [topics]="ph.topics" [source]="ph.source" />
+      }
     </div>
   </div>
 </section>

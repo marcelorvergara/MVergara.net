@@ -1,0 +1,30 @@
+<div class="ph" aria-label="Pub/Sub pipeline health">
+  <div class="ph__header">
+    <span class="ph__title text-mono">Pipeline Health</span>
+    @if (source === 'counters-fallback') {
+      <span class="ph__tag">counters only</span>
+    }
+  </div>
+
+  <div class="ph__rows" role="list">
+    @for (topic of topics; track topic.name) {
+      <div
+        class="ph__row"
+        [class.ph__row--healthy]="topic.status === 'healthy'"
+        [class.ph__row--warning]="topic.status === 'warning'"
+        [class.ph__row--critical]="topic.status === 'critical'"
+        role="listitem"
+        [attr.aria-label]="label(topic.name) + ': ' + topic.status"
+      >
+        <span class="ph__dot" aria-hidden="true"></span>
+        <span class="ph__name">{{ label(topic.name) }}</span>
+        <span class="ph__stat">{{ formatCount(topic.backlog) }} queued</span>
+        <span class="ph__stat">{{ formatAge(topic.oldest_unacked_age_s) }} oldest</span>
+        <span class="ph__stat">{{ formatCount(topic.ack_count_24h) }} ack · {{ formatCount(topic.nack_count_24h) }} nack</span>
+        @if ((topic.dlq_count ?? 0) > 0) {
+          <span class="ph__dlq">DLQ {{ topic.dlq_count }}</span>
+        }
+      </div>
+    }
+  </div>
+</div>

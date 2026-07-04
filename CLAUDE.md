@@ -31,7 +31,9 @@ Output directory for Cloudflare Pages: `dist/mvergara-net/browser`
 | `src/app/data/projects.data.ts` | Static data for all 4 project cards (hook, rationale, pipeline nodes) |
 | `src/app/components/project-card/` | Card with click-to-pin overlay showing pipeline + rationale |
 | `src/app/components/mission-control/` | Live status widget (StatusService + circuit breaker) |
+| `src/app/components/mission-control/pipeline-health/` | Sub-panel rendering the `pipeline_health` block (Pub/Sub topic rows: queued, oldest-unacked, ack/nack, DLQ badge) |
 | `src/app/services/status.service.ts` | Fetches `/api/public/status` from Monitoring Links, 10 s timeout + 1 auto-retry + fallback + manual refresh |
+| `src/app/utils/format-duration.ts` | Shared seconds→human-string formatter, used by Mission Control (incident duration) and the pipeline health panel (oldest-unacked age) |
 
 ## Design tokens (from `_tokens.scss`)
 
@@ -53,6 +55,18 @@ Output directory for Cloudflare Pages: `dist/mvergara-net/browser`
 - The `nodes[].x` and `nodes[].y` fields in `projects.data.ts` are unused (SVG was replaced); the `edges` array is also unused
 - Visit link inside overlay uses `$event.stopPropagation()` so clicking it doesn't toggle the card
 
+## Pipeline health panel behaviour
+
+- Renders inside the existing `.mc__frame`, below the service grid — one row per Pub/Sub topic: `url-check-tasks` (displayed as "URL Checks") and `alert-events` (displayed as "Alerts")
+- Per-row stats: `queued` (backlog), `oldest` (oldest-unacked age), `ack`/`nack` counts (24h), and a `DLQ n` badge shown only when `dlq_count > 0`
+- Status dot colour reuses existing pillar tokens, not new colours: healthy → `--color-pillar-infra` (green), warning → `--color-pillar-edge` (amber), critical → `--color-pillar-security` (red)
+- Thresholds (mirrors backend `derivePipelineStatus` in Monitoring Links' `publicStatus.service.ts` — keep both in sync if either changes):
+  - `critical` if `dlq_count > 0` or `oldest_unacked_age_s > 900` (15 min)
+  - `warning` if `backlog > 0`, or `nack_count_24h > 0`, or `oldest_unacked_age_s > 300` (5 min)
+  - `healthy` otherwise
+- When the response's `pipeline_health.source` is `"counters-fallback"` (Cloud Monitoring IAM not granted, or query failed), a small `counters only` tag renders next to the panel title — this is a degraded-but-honest state, not an error, so it never blocks rendering
+- `PipelineTopic` fields are `number | null` — `null` renders as `—`; the `alert-events` topic is always `null` in fallback mode (no DB dependency in `alertservice`)
+
 ## What NOT to do
 
 - Do not use SVG for architecture diagrams — SVG `width:100%; height:auto` does not scale reliably inside a flex column card. The CSS pipeline approach replaced it deliberately.
@@ -68,10 +82,10 @@ Performance ≥ 98 · Accessibility 100 · Best Practices 100 · SEO 100 · FCP 
 Push to `main` → Cloudflare Pages auto-deploys. No manual deploy step needed.
 No `_redirects` file needed — SSG pre-renders all routes to static HTML, Cloudflare Pages serves them directly. Do NOT add `/* /index.html 200`; Cloudflare rejects it as an infinite loop.
 
-## Phase 0 (prerequisite — separate repo)
+## Phase 0 (prerequisite — separate repo) — done
 
 The Mission Control widget needs a public endpoint on Monitoring Links:
-`GET https://monitoringlinks.com/api/public/status`
-Returns JSON with `{ generated_at, services: [{ name, url, status, latency_ms?, uptime_30d, last_incident, thresholds?, history? }] }`.
-CORS must allow `https://mvergara.net` and `http://localhost:4200`.
-Until this endpoint exists, the widget falls back to a static mock in `status.service.ts`.
+`GET https://api.monitoringlinks.com/api/public/status`
+Returns JSON with `{ generated_at, services: [{ name, url, status, latency_ms?, uptime_30d, last_incident, thresholds?, history? }], pipeline_health?: { source: "cloud-monitoring" | "counters-fallback", generated_at, topics: [{ name, backlog, oldest_unacked_age_s, ack_count_24h, nack_count_24h, dlq_count, status }] } }`.
+CORS must allow `https://mvergara.net`, `https://www.mvergara.net`, and `http://localhost:4200`.
+This endpoint is live in production; if the whole request fails (network/timeout), the widget falls back to the static mock in `status.service.ts`, which includes a plausible `pipeline_health` block so the panel still renders.

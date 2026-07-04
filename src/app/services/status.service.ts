@@ -32,9 +32,29 @@ export interface ServiceHealth {
   history?: HistoryPoint[];
 }
 
+export type PipelineSource = 'cloud-monitoring' | 'counters-fallback';
+export type PipelineTopicStatus = 'healthy' | 'warning' | 'critical';
+
+export interface PipelineTopic {
+  name: string;
+  backlog: number | null;
+  oldest_unacked_age_s: number | null;
+  ack_count_24h: number | null;
+  nack_count_24h: number | null;
+  dlq_count: number | null;
+  status: PipelineTopicStatus;
+}
+
+export interface PipelineHealth {
+  source: PipelineSource;
+  generated_at: string;
+  topics: PipelineTopic[];
+}
+
 export interface StatusResponse {
   generated_at: string;
   services: ServiceHealth[];
+  pipeline_health?: PipelineHealth;
 }
 
 export type WidgetState = 'loading' | 'live' | 'fallback';
@@ -50,6 +70,14 @@ const FALLBACK_DATA: StatusResponse = {
     { name: 'MVergara.net',    url: 'https://mvergara.net',          status: 'unknown', uptime_30d: null, last_incident: null },
     { name: 'VergaraVerse',    url: 'https://vergaraverse.com',      status: 'unknown', uptime_30d: null, last_incident: null },
   ],
+  pipeline_health: {
+    source: 'counters-fallback',
+    generated_at: new Date().toISOString(),
+    topics: [
+      { name: 'url-check-tasks', backlog: null, oldest_unacked_age_s: null, ack_count_24h: null, nack_count_24h: null, dlq_count: null, status: 'healthy' },
+      { name: 'alert-events',    backlog: null, oldest_unacked_age_s: null, ack_count_24h: null, nack_count_24h: null, dlq_count: null, status: 'healthy' },
+    ],
+  },
 };
 
 @Injectable({ providedIn: 'root' })
