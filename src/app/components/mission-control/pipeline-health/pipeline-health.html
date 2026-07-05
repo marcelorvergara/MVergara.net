@@ -1,6 +1,7 @@
 <div class="ph" aria-label="Pub/Sub pipeline health">
   <div class="ph__header">
     <span class="ph__title text-mono">Pipeline Health</span>
+    <span class="ph__window">ack/nack · dlq over 24h</span>
     @if (source === 'counters-fallback') {
       <span class="ph__tag">counters only</span>
     }
