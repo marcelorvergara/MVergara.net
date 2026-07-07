@@ -1,0 +1,32 @@
+<div class="lh" aria-label="LLM observability">
+  <div class="lh__header">
+    <span class="lh__title text-mono">LLM Health</span>
+    <span class="lh__window">requests · cost · errors over 24h</span>
+  </div>
+
+  <div class="lh__rows" role="list">
+    @for (svc of services; track svc.id) {
+      <div
+        class="lh__row"
+        [class.lh__row--healthy]="svc.status === 'healthy'"
+        [class.lh__row--warning]="svc.status === 'warning'"
+        [class.lh__row--critical]="svc.status === 'critical'"
+        role="listitem"
+        [attr.aria-label]="label(svc.id) + ': ' + svc.status"
+      >
+        <span class="lh__dot" aria-hidden="true"></span>
+        <span class="lh__name" [style.color]="accentColor(svc.pillar_var)">{{ label(svc.id) }}</span>
+        <span class="lh__stat">{{ formatCount(svc.requests_24h) }} req</span>
+        <span class="lh__stat">{{ formatLatency(svc.avg_latency_ms) }}</span>
+        <span class="lh__stat">{{ formatTokens(svc.tokens_24h) }} tok</span>
+        <span class="lh__stat">{{ formatCost(svc.cost_usd_24h) }}</span>
+        @if ((svc.error_rate_pct ?? 0) > 0) {
+          <span class="lh__error">{{ formatErrorRate(svc.error_rate_pct) }} err</span>
+        }
+        @if (svc.source === 'unavailable') {
+          <span class="lh__tag">no data</span>
+        }
+      </div>
+    }
+  </div>
+</div>

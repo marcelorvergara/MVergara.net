@@ -32,7 +32,8 @@ Output directory for Cloudflare Pages: `dist/mvergara-net/browser`
 | `src/app/components/project-card/` | Card with click-to-pin overlay showing pipeline + rationale |
 | `src/app/components/mission-control/` | Live status widget (StatusService + circuit breaker) |
 | `src/app/components/mission-control/pipeline-health/` | Sub-panel rendering the `pipeline_health` block (Pub/Sub topic rows: queued, oldest-unacked, ack/nack, DLQ badge) |
-| `src/app/services/status.service.ts` | Fetches `/api/public/status` from Monitoring Links, 10 s timeout + 1 auto-retry + fallback + manual refresh |
+| `src/app/components/mission-control/llm-health/` | Sub-panel rendering the `llm_health` block (per-service LLM telemetry rows: requests, latency, tokens, cost, error rate) |
+| `src/app/services/status.service.ts` | Fetches `/api/public/status` from Monitoring Links, 10 s timeout + 1 auto-retry + fallback + manual refresh. `STATUS_API` resolves to `http://localhost:3001/api/public/status` under `isDevMode()` and the production URL otherwise — no `src/environments/` setup exists (or is needed) for this one constant |
 | `src/app/utils/format-duration.ts` | Shared seconds→human-string formatter, used by Mission Control (incident duration) and the pipeline health panel (oldest-unacked age) |
 
 ## Design tokens (from `_tokens.scss`)
@@ -67,6 +68,15 @@ Output directory for Cloudflare Pages: `dist/mvergara-net/browser`
 - When the response's `pipeline_health.source` is `"counters-fallback"` (Cloud Monitoring IAM not granted, or query failed), a small `counters only` tag renders next to the panel title — this is a degraded-but-honest state, not an error, so it never blocks rendering
 - `PipelineTopic` fields are `number | null` — `null` renders as `—`; the `alert-events` topic is always `null` in fallback mode (no DB dependency in `alertservice`)
 
+## LLM health panel behaviour
+
+- Renders inside the existing `.mc__frame`, below the pipeline health panel — one row per LLM-backed project: `securechat` (ENP Secure Chat) and `fabula-infantil` (Fábula Infantil). Monitoring Links and VergaraVerse have no LLM in their request path, so they don't appear here.
+- Per-row stats: `requests_24h`, `avg_latency_ms` (end-to-end for SecureChat's blocking `/api/chat`, TTFT for its `/api/chat/stream`), `tokens_24h` (formatted like `12.2K`), `cost_usd_24h` (formatted like `$0.05`), and an `error_rate_pct` badge shown only when `> 0`
+- Status dot colour reuses the same pillar tokens as the pipeline health panel (not project identity colours): healthy → `--color-pillar-infra` (green), warning → `--color-pillar-edge` (amber), critical → `--color-pillar-security` (red). The project **name** text, separately, is coloured via the row's own `pillar_var` (`--color-pillar-security` for SecureChat, `--color-pillar-ai` for Fábula) so the dot still reads as "status" and the name still reads as "which project," instead of overloading one colour for both meanings.
+- `LlmServiceHealth` metric fields are typed `number | null | undefined` (`?: number | null`) rather than the stricter `number | null` used elsewhere — the backend has been observed to omit fields entirely (not send `null`) when a service's data isn't populated yet, so the formatters treat "absent" and "explicit null" identically, both rendering as `—`
+- When a row's `source` is `"unavailable"` (Monitoring Links couldn't reach that app's `/internal/llm-metrics` endpoint, or the shared-secret auth failed), a small `no data` tag renders on the row, same honest-degraded convention as pipeline health's `counters only` tag
+- Thresholds are derived server-side by Monitoring Links, mirroring the same "keep both in sync" convention as pipeline health's `derivePipelineStatus`
+
 ## What NOT to do
 
 - Do not use SVG for architecture diagrams — SVG `width:100%; height:auto` does not scale reliably inside a flex column card. The CSS pipeline approach replaced it deliberately.
@@ -89,3 +99,18 @@ The Mission Control widget needs a public endpoint on Monitoring Links:
 Returns JSON with `{ generated_at, services: [{ name, url, status, latency_ms?, uptime_30d, last_incident, thresholds?, history? }], pipeline_health?: { source: "cloud-monitoring" | "counters-fallback", generated_at, topics: [{ name, backlog, oldest_unacked_age_s, ack_count_24h, nack_count_24h, dlq_count, status }] } }`.
 CORS must allow `https://mvergara.net`, `https://www.mvergara.net`, and `http://localhost:4200`.
 This endpoint is live in production; if the whole request fails (network/timeout), the widget falls back to the static mock in `status.service.ts`, which includes a plausible `pipeline_health` block so the panel still renders.
+
+## Phase 1 (LLM Observability, ADR-002) — done
+
+Rejected a managed/self-hosted LLM observability platform (Langfuse, Phoenix) as overkill for two low-traffic side projects — see ADR-002 (Monitoring Links' `docs/`). Went with bespoke async logging into each app's existing datastore instead:
+
+- **SecureChat** (Spring Boot): writes to a new Neon table `llm_telemetry` via a fire-and-forget `LlmTelemetryService` (separate `@Component`, not a method on `RagService`, to avoid the `@Async` self-invocation proxy trap) on its own bounded `ThreadPoolTaskExecutor`.
+- **Fábula Infantil** (Express): writes to a new Firestore collection `llm_telemetry` after each OpenAI/image call, without awaiting the write in the response path.
+- Both expose `GET /internal/llm-metrics`, gated by a shared-secret `X-Internal-Key` header (env var pattern: `INTERNAL_METRICS_KEY` on the app side, `LLM_<SERVICE>_KEY`/`LLM_<SERVICE>_URL` on the Monitoring Links poller side — the two must be kept in sync manually, there's no automated secret rotation).
+- **Monitoring Links** polls both endpoints (same "poll over HTTP, never hold a foreign DB credential" trust boundary its `checkUrl` cron already uses) and folds the result into the existing `/api/public/status` payload as a `llm_health` sibling to `pipeline_health`, rather than a separate endpoint — one HTTP round trip, one circuit breaker on this side.
+
+**Known gotchas hit during rollout** (worth checking first if `llm_health` ever regresses to `source: "unavailable"` again):
+- The poller config vars are used as the literal request URL with no path appended — `LLM_SECURECHAT_URL`/`LLM_FABULA_URL` must include the full `/internal/llm-metrics` path, not just the host. Pointing at the app root can return a misleading `200` with no metrics fields, which looks like success but isn't.
+- Monitoring Links' backend loads `.env` once via `dotenv.config()` at startup — editing `.env` requires restarting `npm run dev`, `nodemon` does not pick it up.
+- The shared secret is symmetric and lives in two independently-deployed repos' env config — a value regenerated on one side (e.g. SecureChat's `INTERNAL_METRICS_KEY`) silently breaks the other side until manually copied over.
+- Production deploys still need the four new vars (`LLM_SECURECHAT_KEY/URL`, `LLM_FABULA_KEY/URL`) added as GitHub Secrets and injected in `deploy-backend.yml` — not done as of this writing, local-only so far. Remember the repo's existing path-filter gotcha: a commit touching only `deploy-backend.yml` needs the workflow's own path in its `paths:` filter to auto-trigger.

@@ -1,4 +1,4 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable, inject, isDevMode } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, of, timeout, retry, catchError } from 'rxjs';
 
@@ -51,15 +51,39 @@ export interface PipelineHealth {
   topics: PipelineTopic[];
 }
 
+export type LlmServiceSource = 'internal-endpoint' | 'unavailable';
+export type LlmServiceStatus = 'healthy' | 'warning' | 'critical';
+
+export interface LlmServiceHealth {
+  id: string;
+  pillar_var: string;
+  source: LlmServiceSource;
+  status: LlmServiceStatus;
+  requests_24h?: number | null;
+  avg_latency_ms?: number | null;
+  tokens_24h?: number | null;
+  cost_usd_24h?: number | null;
+  error_rate_pct?: number | null;
+}
+
+export interface LlmHealth {
+  generated_at: string;
+  window_hours: number;
+  services: LlmServiceHealth[];
+}
+
 export interface StatusResponse {
   generated_at: string;
   services: ServiceHealth[];
   pipeline_health?: PipelineHealth;
+  llm_health?: LlmHealth;
 }
 
 export type WidgetState = 'loading' | 'live' | 'fallback';
 
-const STATUS_API = 'https://api.monitoringlinks.com/api/public/status';
+const STATUS_API = isDevMode()
+  ? 'http://localhost:3001/api/public/status'
+  : 'https://api.monitoringlinks.com/api/public/status';
 const TIMEOUT_MS = 10_000;
 
 const FALLBACK_DATA: StatusResponse = {
@@ -76,6 +100,14 @@ const FALLBACK_DATA: StatusResponse = {
     topics: [
       { name: 'url-check-tasks', backlog: null, oldest_unacked_age_s: null, ack_count_24h: null, nack_count_24h: null, dlq_count: null, status: 'healthy' },
       { name: 'alert-events',    backlog: null, oldest_unacked_age_s: null, ack_count_24h: null, nack_count_24h: null, dlq_count: null, status: 'healthy' },
+    ],
+  },
+  llm_health: {
+    generated_at: new Date().toISOString(),
+    window_hours: 24,
+    services: [
+      { id: 'securechat', pillar_var: '--color-pillar-security', source: 'unavailable', status: 'healthy', requests_24h: null, avg_latency_ms: null, tokens_24h: null, cost_usd_24h: null, error_rate_pct: null },
+      { id: 'fabula-infantil', pillar_var: '--color-pillar-ai', source: 'unavailable', status: 'healthy', requests_24h: null, avg_latency_ms: null, tokens_24h: null, cost_usd_24h: null, error_rate_pct: null },
     ],
   },
 };

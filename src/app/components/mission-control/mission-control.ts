@@ -1,7 +1,8 @@
 import { Component, OnInit, OnDestroy, inject, signal } from '@angular/core';
-import { StatusService, ServiceHealth, PipelineHealth, WidgetState } from '../../services/status.service';
+import { StatusService, ServiceHealth, PipelineHealth, LlmHealth, WidgetState } from '../../services/status.service';
 import { SparklineComponent } from './sparkline/sparkline';
 import { PipelineHealthComponent } from './pipeline-health/pipeline-health';
+import { LlmHealthComponent } from './llm-health/llm-health';
 import { formatDuration } from '../../utils/format-duration';
 
 const CHECK_INTERVAL_S = 300;
@@ -9,7 +10,7 @@ const COUNTDOWN_TICK_S = 10;
 
 @Component({
   selector: 'app-mission-control',
-  imports: [SparklineComponent, PipelineHealthComponent],
+  imports: [SparklineComponent, PipelineHealthComponent, LlmHealthComponent],
   templateUrl: './mission-control.html',
   styleUrl: './mission-control.scss',
 })
@@ -20,6 +21,7 @@ export class MissionControl implements OnInit, OnDestroy {
   protected readonly services = signal<ServiceHealth[]>([]);
   protected readonly generatedAt = signal<string | null>(null);
   protected readonly pipelineHealth = signal<PipelineHealth | null>(null);
+  protected readonly llmHealth = signal<LlmHealth | null>(null);
   protected readonly secondsUntilNextCheck = signal(CHECK_INTERVAL_S);
 
   private countdownHandle?: ReturnType<typeof setInterval>;
@@ -38,6 +40,7 @@ export class MissionControl implements OnInit, OnDestroy {
     this.services.set([]);
     this.generatedAt.set(null);
     this.pipelineHealth.set(null);
+    this.llmHealth.set(null);
     this.secondsUntilNextCheck.set(CHECK_INTERVAL_S);
     this.load();
   }
@@ -64,6 +67,7 @@ export class MissionControl implements OnInit, OnDestroy {
         this.services.set(response.services);
         this.generatedAt.set(response.generated_at);
         this.pipelineHealth.set(response.pipeline_health ?? null);
+        this.llmHealth.set(response.llm_health ?? null);
         const isLive = response.services.some(s => s.status !== 'unknown');
         this.state.set(isLive ? 'live' : 'fallback');
       },

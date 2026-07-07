@@ -97,6 +97,10 @@
       @if (pipelineHealth(); as ph) {
         <app-pipeline-health [topics]="ph.topics" [source]="ph.source" />
       }
+
+      @if (llmHealth(); as lh) {
+        <app-llm-health [services]="lh.services" />
+      }
     </div>
   </div>
 </section>
