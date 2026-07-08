@@ -14,18 +14,34 @@
         role="listitem"
         [attr.aria-label]="label(svc.id) + ': ' + svc.status"
       >
-        <span class="lh__dot" aria-hidden="true"></span>
-        <span class="lh__name" [style.color]="accentColor(svc.pillar_var)">{{ label(svc.id) }}</span>
-        <span class="lh__stat">{{ formatCount(svc.requests_24h) }} req</span>
-        <span class="lh__stat" title="Average response latency over the last 24h">{{ formatLatency(svc.avg_latency_ms) }} avg</span>
-        <span class="lh__stat">{{ formatTokens(svc.tokens_24h) }} tok</span>
-        <span class="lh__stat">{{ formatCost(svc.cost_usd_24h) }}</span>
-        @if ((svc.error_rate_pct ?? 0) > 0) {
-          <span class="lh__error">{{ formatErrorRate(svc.error_rate_pct) }} err</span>
-        }
-        @if (svc.source === 'unavailable') {
-          <span class="lh__tag">no data</span>
-        }
+        <div class="lh__row-head">
+          <span class="lh__dot" aria-hidden="true"></span>
+          <span class="lh__name" [style.color]="accentColor(svc.pillar_var)">{{ label(svc.id) }}</span>
+          @if ((svc.error_rate_pct ?? 0) > 0) {
+            <span class="lh__error">{{ formatErrorRate(svc.error_rate_pct) }} err</span>
+          }
+          @if (svc.source === 'unavailable') {
+            <span class="lh__tag">no data</span>
+          }
+        </div>
+        <div class="lh__stats">
+          <span class="lh__stat">
+            <span class="lh__stat-label">requests</span>
+            <span class="lh__stat-value">{{ formatCount(svc.requests_24h) }}</span>
+          </span>
+          <span class="lh__stat">
+            <span class="lh__stat-label" title="Average response latency over the last 24h">avg latency</span>
+            <span class="lh__stat-value">{{ formatLatency(svc.avg_latency_ms) }}</span>
+          </span>
+          <span class="lh__stat">
+            <span class="lh__stat-label">tokens</span>
+            <span class="lh__stat-value">{{ formatTokens(svc.tokens_24h) }}</span>
+          </span>
+          <span class="lh__stat">
+            <span class="lh__stat-label">cost</span>
+            <span class="lh__stat-value">{{ formatCost(svc.cost_usd_24h) }}</span>
+          </span>
+        </div>
       </div>
     }
   </div>

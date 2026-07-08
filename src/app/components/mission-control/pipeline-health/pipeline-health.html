@@ -17,14 +17,31 @@
         role="listitem"
         [attr.aria-label]="label(topic.name) + ': ' + topic.status"
       >
-        <span class="ph__dot" aria-hidden="true"></span>
-        <span class="ph__name">{{ label(topic.name) }}</span>
-        <span class="ph__stat">{{ formatCount(topic.backlog) }} queued</span>
-        <span class="ph__stat">{{ formatAge(topic.oldest_unacked_age_s) }} oldest</span>
-        <span class="ph__stat">{{ formatCount(topic.ack_count_24h) }} ack · {{ formatCount(topic.nack_count_24h) }} nack</span>
-        @if ((topic.dlq_count ?? 0) > 0) {
-          <span class="ph__dlq">DLQ {{ topic.dlq_count }}</span>
-        }
+        <div class="ph__row-head">
+          <span class="ph__dot" aria-hidden="true"></span>
+          <span class="ph__name">{{ label(topic.name) }}</span>
+          @if ((topic.dlq_count ?? 0) > 0) {
+            <span class="ph__dlq">DLQ {{ topic.dlq_count }}</span>
+          }
+        </div>
+        <div class="ph__stats">
+          <span class="ph__stat">
+            <span class="ph__stat-label">queued</span>
+            <span class="ph__stat-value">{{ formatCount(topic.backlog) }}</span>
+          </span>
+          <span class="ph__stat">
+            <span class="ph__stat-label">oldest</span>
+            <span class="ph__stat-value">{{ formatAge(topic.oldest_unacked_age_s) }}</span>
+          </span>
+          <span class="ph__stat">
+            <span class="ph__stat-label">ack</span>
+            <span class="ph__stat-value">{{ formatCount(topic.ack_count_24h) }}</span>
+          </span>
+          <span class="ph__stat">
+            <span class="ph__stat-label">nack</span>
+            <span class="ph__stat-value">{{ formatCount(topic.nack_count_24h) }}</span>
+          </span>
+        </div>
       </div>
     }
   </div>

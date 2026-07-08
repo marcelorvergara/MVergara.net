@@ -51,6 +51,14 @@
   border-radius: var(--radius-md);
 }
 
+// Flattened into .ph__row's flex layout on desktop so the header (dot, name,
+// DLQ badge) and the stats read as a single wrapping row, same as before this
+// panel grew a mobile-only table layout (see the max-width query below).
+.ph__row-head,
+.ph__stats {
+  display: contents;
+}
+
 .ph__dot {
   width: 8px;
   height: 8px;
@@ -81,12 +89,20 @@
 }
 
 .ph__stat {
+  display: inline-flex;
+  flex-direction: row-reverse;
+  align-items: baseline;
+  gap: 4px;
   font-family: var(--font-mono);
   font-size: 0.65rem;
   color: var(--color-text-muted);
 }
 
 .ph__dlq {
+  // Ordered after the (visually flattened) stat spans so it still lands at
+  // the end of the row on desktop, matching its DOM position before the
+  // header/stats split.
+  order: 1;
   font-family: var(--font-mono);
   font-size: 0.6rem;
   color: var(--color-pillar-security);
@@ -95,4 +111,43 @@
   border-radius: 99px;
   padding: 1px var(--space-2);
   margin-left: auto;
+}
+
+@media (max-width: 640px) {
+  .ph__row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .ph__row-head {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+
+  .ph__stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-2) var(--space-4);
+    margin-top: var(--space-3);
+    padding-top: var(--space-3);
+    border-top: 1px dashed var(--color-border);
+  }
+
+  .ph__stat {
+    flex-direction: row;
+    justify-content: space-between;
+    gap: var(--space-2);
+  }
+
+  .ph__stat-label {
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-size: 0.6rem;
+  }
+
+  .ph__stat-value {
+    color: var(--color-text);
+    font-weight: 500;
+  }
 }

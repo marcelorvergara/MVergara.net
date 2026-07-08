@@ -42,6 +42,14 @@
   border-radius: var(--radius-md);
 }
 
+// Flattened into .lh__row's flex layout on desktop so the header (dot, name,
+// error/tag badges) and the stats read as a single wrapping row, same as
+// before this panel grew a mobile-only table layout (see the query below).
+.lh__row-head,
+.lh__stats {
+  display: contents;
+}
+
 .lh__dot {
   width: 8px;
   height: 8px;
@@ -71,12 +79,19 @@
 }
 
 .lh__stat {
+  display: inline-flex;
+  flex-direction: row-reverse;
+  align-items: baseline;
+  gap: 4px;
   font-family: var(--font-mono);
   font-size: 0.65rem;
   color: var(--color-text-muted);
 }
 
 .lh__error {
+  // Ordered ahead of .lh__tag but after the (visually flattened) stat spans,
+  // matching their relative DOM position before the header/stats split.
+  order: 1;
   font-family: var(--font-mono);
   font-size: 0.6rem;
   color: var(--color-pillar-security);
@@ -87,6 +102,7 @@
 }
 
 .lh__tag {
+  order: 2;
   font-family: var(--font-mono);
   font-size: 0.6rem;
   color: var(--color-text-muted);
@@ -94,4 +110,43 @@
   border-radius: 99px;
   padding: 1px var(--space-2);
   margin-left: auto;
+}
+
+@media (max-width: 640px) {
+  .lh__row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .lh__row-head {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+
+  .lh__stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-2) var(--space-4);
+    margin-top: var(--space-3);
+    padding-top: var(--space-3);
+    border-top: 1px dashed var(--color-border);
+  }
+
+  .lh__stat {
+    flex-direction: row;
+    justify-content: space-between;
+    gap: var(--space-2);
+  }
+
+  .lh__stat-label {
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-size: 0.6rem;
+  }
+
+  .lh__stat-value {
+    color: var(--color-text);
+    font-weight: 500;
+  }
 }
