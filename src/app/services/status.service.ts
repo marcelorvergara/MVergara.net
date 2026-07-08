@@ -1,6 +1,6 @@
 import { Injectable, inject, isDevMode } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, of, timeout, retry, catchError } from 'rxjs';
+import { Observable, of, timeout, retry, catchError, expand, timer, switchMap, EMPTY } from 'rxjs';
 
 export type ServiceStatus = 'up' | 'down' | 'unknown';
 
@@ -86,6 +86,16 @@ const STATUS_API = isDevMode()
   : 'https://api.monitoringlinks.com/api/public/status';
 const TIMEOUT_MS = 10_000;
 
+// Retries with backoff when a service reports `source: "unavailable"` — this is the
+// signature of a transient Cloud Run cold start on the polled app, not a real outage,
+// so a short delayed re-poll of Monitoring Links usually self-heals within a few seconds.
+const LLM_BACKOFF_MAX_ATTEMPTS = 3;
+const LLM_BACKOFF_BASE_MS = 2000;
+
+function hasUnavailableLlmService(response: StatusResponse): boolean {
+  return (response.llm_health?.services ?? []).some(s => s.source === 'unavailable');
+}
+
 const FALLBACK_DATA: StatusResponse = {
   generated_at: new Date().toISOString(),
   services: [
@@ -116,10 +126,23 @@ const FALLBACK_DATA: StatusResponse = {
 export class StatusService {
   private readonly http = inject(HttpClient);
 
+  private fetchStatusOnce(): Observable<StatusResponse> {
+    return this.http.get<StatusResponse>(STATUS_API).pipe(timeout(TIMEOUT_MS));
+  }
+
   fetchStatus(): Observable<StatusResponse> {
-    return this.http.get<StatusResponse>(STATUS_API).pipe(
-      timeout(TIMEOUT_MS),
+    return this.fetchStatusOnce().pipe(
       retry(1),
+      expand((response, attempt) => {
+        if (attempt >= LLM_BACKOFF_MAX_ATTEMPTS || !hasUnavailableLlmService(response)) {
+          return EMPTY;
+        }
+        const delayMs = LLM_BACKOFF_BASE_MS * 2 ** attempt;
+        return timer(delayMs).pipe(
+          switchMap(() => this.fetchStatusOnce()),
+          catchError(() => EMPTY),
+        );
+      }),
       catchError(() => of(FALLBACK_DATA)),
     );
   }
