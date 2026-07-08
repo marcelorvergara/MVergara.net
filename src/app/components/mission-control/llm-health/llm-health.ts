@@ -2,7 +2,7 @@ import { Component, Input } from '@angular/core';
 import { LlmServiceHealth } from '../../../services/status.service';
 
 const SERVICE_LABELS: Record<string, string> = {
-  'securechat': 'SecureChat',
+  'securechat': 'ENP Secure Chat',
   'fabula-infantil': 'Fábula Infantil',
 };
 

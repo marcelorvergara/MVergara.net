@@ -17,7 +17,7 @@
         <span class="lh__dot" aria-hidden="true"></span>
         <span class="lh__name" [style.color]="accentColor(svc.pillar_var)">{{ label(svc.id) }}</span>
         <span class="lh__stat">{{ formatCount(svc.requests_24h) }} req</span>
-        <span class="lh__stat">{{ formatLatency(svc.avg_latency_ms) }}</span>
+        <span class="lh__stat" title="Average response latency over the last 24h">{{ formatLatency(svc.avg_latency_ms) }} avg</span>
         <span class="lh__stat">{{ formatTokens(svc.tokens_24h) }} tok</span>
         <span class="lh__stat">{{ formatCost(svc.cost_usd_24h) }}</span>
         @if ((svc.error_rate_pct ?? 0) > 0) {
