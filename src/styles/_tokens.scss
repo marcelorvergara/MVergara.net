@@ -9,8 +9,11 @@
   --color-accent:       #5b8af5;
   --color-accent-glow:  rgba(91, 138, 245, 0.15);
 
+  // Semantic status colour — critical/down/danger indicators across mission-control
+  --color-status-danger:     #f55b5b;
+
   // Pillar badge colours — one per project
-  --color-pillar-security:   #f55b5b;
+  --color-pillar-security:   #3b82f6;
   --color-pillar-ai:         #a855f7;
   --color-pillar-infra:      #22c55e;
   --color-pillar-edge:       #f59e0b;

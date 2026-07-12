@@ -19,12 +19,12 @@
   }
 
   &__danger {
-    stroke: var(--color-pillar-security);
+    stroke: var(--color-status-danger);
     stroke-width: 1;
     stroke-dasharray: 3 3;
   }
 
   &__down {
-    fill: var(--color-pillar-security);
+    fill: var(--color-status-danger);
   }
 }

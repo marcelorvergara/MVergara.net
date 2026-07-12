@@ -68,8 +68,8 @@
   }
 
   .lh__row--critical & {
-    background: var(--color-pillar-security);
-    box-shadow: 0 0 6px var(--color-pillar-security);
+    background: var(--color-status-danger);
+    box-shadow: 0 0 6px var(--color-status-danger);
   }
 }
 
@@ -94,7 +94,7 @@
   order: 1;
   font-family: var(--font-mono);
   font-size: 0.6rem;
-  color: var(--color-pillar-security);
+  color: var(--color-status-danger);
   border: 1px solid rgba(245, 91, 91, 0.4);
   background: rgba(245, 91, 91, 0.1);
   border-radius: 99px;
