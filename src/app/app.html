@@ -12,6 +12,43 @@
 
   @defer (on idle) {
     <app-mission-control />
+  } @placeholder {
+    <section class="mc-skeleton" id="mission-control" aria-hidden="true">
+      <div class="mc-skeleton__inner">
+        <div class="mc-skeleton__header">
+          <span class="mc-skeleton__heading">System Status</span>
+          <span class="mc-skeleton__badge"></span>
+        </div>
+        <div class="mc-skeleton__frame">
+          <div class="mc-skeleton__frame-header">
+            <span class="mc-skeleton__bar mc-skeleton__bar--label"></span>
+            <span class="mc-skeleton__bar mc-skeleton__bar--link"></span>
+          </div>
+          <div class="mc-skeleton__grid">
+            <div class="mc-skeleton__item">
+              <span class="mc-skeleton__dot"></span>
+              <span class="mc-skeleton__bar mc-skeleton__bar--name"></span>
+              <span class="mc-skeleton__bar mc-skeleton__bar--status"></span>
+            </div>
+            <div class="mc-skeleton__item">
+              <span class="mc-skeleton__dot"></span>
+              <span class="mc-skeleton__bar mc-skeleton__bar--name"></span>
+              <span class="mc-skeleton__bar mc-skeleton__bar--status"></span>
+            </div>
+            <div class="mc-skeleton__item">
+              <span class="mc-skeleton__dot"></span>
+              <span class="mc-skeleton__bar mc-skeleton__bar--name"></span>
+              <span class="mc-skeleton__bar mc-skeleton__bar--status"></span>
+            </div>
+            <div class="mc-skeleton__item">
+              <span class="mc-skeleton__dot"></span>
+              <span class="mc-skeleton__bar mc-skeleton__bar--name"></span>
+              <span class="mc-skeleton__bar mc-skeleton__bar--status"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
   }
 
   <section id="active-deployments" class="project-matrix" aria-labelledby="projects-heading">
