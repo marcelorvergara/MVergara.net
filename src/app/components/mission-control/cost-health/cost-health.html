@@ -1,7 +1,7 @@
 <div class="ch" aria-label="GCP cost monitoring">
   <div class="ch__header">
-    <span class="ch__title text-mono">COST · {{ formatMonth(invoiceMonth) }}</span>
-    <span class="ch__window">mtd vs prev month</span>
+    <span class="ch__title text-mono">GCP COST · {{ formatMonth(invoiceMonth) }}</span>
+    <span class="ch__window">mtd · prev month</span>
     @if (source === 'cache-stale') {
       <span class="ch__tag">stale</span>
     }
