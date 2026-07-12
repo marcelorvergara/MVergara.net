@@ -50,12 +50,51 @@
 
     <div class="stack__certs">
       <p class="stack__certs-label text-mono">CERTIFIED</p>
-      <div class="stack__certs-badges">
-        <span class="cert-badge">Professional Cloud Architect</span>
-        <span class="cert-badge">Professional Cloud Developer</span>
-        <span class="cert-badge">Professional Cloud Database Engineer</span>
-        <span class="cert-badge">Associate Cloud Engineer</span>
-        <span class="cert-badge">Cloud Digital Leader</span>
+
+      <div class="stack__certs-row">
+        <p class="stack__certs-row-label text-mono">Certifications</p>
+        <div class="stack__certs-badges">
+          @for (c of certifications; track c.name) {
+            <a
+              class="cert-badge"
+              [href]="c.credlyUrl"
+              target="_blank"
+              rel="noopener noreferrer"
+              [attr.aria-label]="c.name + ' certification, ' + dateLabel(c) + ', verify on Credly'"
+            >
+              {{ c.name }}
+              <span class="cert-badge__date">{{ dateLabel(c) }}</span>
+            </a>
+          }
+        </div>
+      </div>
+
+      <div class="stack__certs-row">
+        <p class="stack__certs-row-label text-mono">Skill badges</p>
+        <div class="stack__certs-badges">
+          @for (c of visibleBadges(); track c.name) {
+            <a
+              class="cert-badge"
+              [href]="c.credlyUrl"
+              target="_blank"
+              rel="noopener noreferrer"
+              [attr.aria-label]="c.name + ' skill badge, ' + dateLabel(c) + ', verify on Credly'"
+            >
+              {{ c.name }}
+              <span class="cert-badge__date">{{ dateLabel(c) }}</span>
+            </a>
+          }
+          @if (hiddenBadgeCount > 0) {
+            <button
+              type="button"
+              class="stack__certs-more"
+              [attr.aria-expanded]="showAllBadges()"
+              (click)="toggleBadges()"
+            >
+              {{ showAllBadges() ? 'show less' : '+' + hiddenBadgeCount + ' more' }}
+            </button>
+          }
+        </div>
       </div>
     </div>
   </div>
