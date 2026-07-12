@@ -33,6 +33,7 @@ Output directory for Cloudflare Pages: `dist/mvergara-net/browser`
 | `src/app/components/mission-control/` | Live status widget (StatusService + circuit breaker) |
 | `src/app/components/mission-control/pipeline-health/` | Sub-panel rendering the `pipeline_health` block (Pub/Sub topic rows: queued, oldest-unacked, ack/nack, DLQ badge) |
 | `src/app/components/mission-control/llm-health/` | Sub-panel rendering the `llm_health` block (per-service LLM telemetry rows: requests, latency, tokens, cost, error rate) |
+| `src/app/components/mission-control/cost-health/` | Sub-panel rendering the `cost_health` block (per-project GCP billing rows: MTD net cost, previous month, BRL-formatted via `Intl.NumberFormat`) |
 | `src/app/services/status.service.ts` | Fetches `/api/public/status` from Monitoring Links, 10 s timeout + 1 auto-retry + fallback + manual refresh. `STATUS_API` resolves to `http://localhost:3001/api/public/status` under `isDevMode()` and the production URL otherwise — no `src/environments/` setup exists (or is needed) for this one constant |
 | `src/app/utils/format-duration.ts` | Shared seconds→human-string formatter, used by Mission Control (incident duration) and the pipeline health panel (oldest-unacked age) |
 
@@ -77,6 +78,20 @@ Output directory for Cloudflare Pages: `dist/mvergara-net/browser`
 - When a row's `source` is `"unavailable"` (Monitoring Links couldn't reach that app's `/internal/llm-metrics` endpoint, or the shared-secret auth failed), a small `no data` tag renders on the row, same honest-degraded convention as pipeline health's `counters only` tag
 - Thresholds are derived server-side by Monitoring Links, mirroring the same "keep both in sync" convention as pipeline health's `derivePipelineStatus`
 
+## Cost panel behaviour
+
+- Renders inside the existing `.mc__frame`, below the LLM health panel — one row per GCP project in payload order: `securechat`, `fabula-infantil`, `monitoring-links`, `vergaraverse`. All four appear here (unlike LLM health, which only covers the two LLM-backed apps), since every project incurs GCP infra cost even without an LLM in its request path.
+- Panel header reads `COST · <Month YYYY>`, derived from the payload's `invoice_month` (`"202607"` → `Jul 2026`)
+- Per-row stats: `mtd` (month-to-date net cost, primary/emphasized) and `prev` (previous invoice month total, dimmer secondary text)
+- Status dot reuses the same pillar tokens as the sibling panels: healthy → `--color-pillar-infra` (green), warning → `--color-pillar-edge` (amber). There is no `critical` state for cost — it's informational, not an outage. The project **name** text is coloured via a component-local `PROJECT_PILLAR_VARS` map (`securechat` → `--color-pillar-security`, `fabula-infantil` → `--color-pillar-ai`, `monitoring-links` → `--color-pillar-infra`, `vergaraverse` → `--color-pillar-edge`), same dot-vs-name colour separation as llm-health — the payload doesn't carry a `pillar_var` field per row the way `llm_health` does, so this map lives in the component.
+- `mtd`/`prev_month` are formatted with `Intl.NumberFormat("pt-BR", { style: "currency", currency })` using the payload's own `currency` field (expected `"BRL"`, rendering e.g. `R$ 21,40`) rather than a hand-rolled currency-symbol map — this gets symbol, decimal separator, and spacing right for whatever code the billing account reports.
+- `CostProjectRow` fields are typed `?: number | null` (absent and explicit `null` both render `—`), same loose-typing rationale as `LlmServiceHealth` — treat "field omitted" and "field sent null" identically rather than assuming the backend is consistent about which one it does.
+- An optional footer line (`total R$ 62,30 mtd`) renders only when every row's `mtd` is non-null — a single missing project cost hides the total rather than showing a misleading partial sum.
+- When the response's `cost_health.source` is `"cache-stale"` (Monitoring Links' cached BigQuery aggregation is older than 48h), a small `stale` tag renders next to the panel title, same honest-degraded convention as `counters only` / `no data`. Unlike `llm_health`'s `"unavailable"` source, this is **not** retried with backoff in `status.service.ts` — a stale cache is a calm, long-lived degraded state (the next scheduled BigQuery query fixes it), not a transient blip a quick re-poll would resolve.
+- Thresholds (`healthy` | `warning`, no `critical`) are derived server-side by Monitoring Links' `deriveCostStatus`, mirroring the same "keep both in sync" convention as pipeline health's `derivePipelineStatus` and LLM health's threshold derivation.
+- **Scope: GCP costs only.** The payload comes from Cloud Billing's BigQuery export — it has no visibility into Vercel, Cloudflare, OpenAI, fal.ai, or Neon spend, all of which these projects also incur. This is a deliberate scope boundary (see ADR-003), not a gap to "fix" by adding more providers later; a true all-up cost figure would need per-provider aggregation that doesn't exist yet.
+- `cost_health` itself is optional on the payload — when absent, the panel renders nothing (no empty frame), same convention as `pipeline_health` and `llm_health`.
+
 ## What NOT to do
 
 - Do not use SVG for architecture diagrams — SVG `width:100%; height:auto` does not scale reliably inside a flex column card. The CSS pipeline approach replaced it deliberately.
@@ -118,3 +133,7 @@ Rejected a managed/self-hosted LLM observability platform (Langfuse, Phoenix) as
 - `fetchStatus()` in `status.service.ts` retries a response containing an `unavailable` `llm_health` service with exponential backoff (2s/4s/8s, `expand()` operator) before giving up — this masks brief transient failures but isn't a substitute for fixing a structurally slow/unreliable upstream (see below).
 
 **SecureChat's Cloud Run JVM cold start (~10–30 s) exceeded the backoff budget (~14 s total) — fixed at the source, not papered over further.** SecureChat's `RagService` now dual-writes telemetry to Firestore alongside its existing Neon write (Postgres write unaffected on Firestore failure or vice versa), and a separate Gen2 Cloud Function (`functions/llm-metrics`, negligible Node cold start) serves `GET .../llm-metrics` reads directly from Firestore, decoupled from the JVM backend entirely. `min-instances=1` was deliberately rejected — it would pay to keep the whole backend (JWT chain, 5 RestClient beans, HikariCP pool) warm 24/7 just to answer a cheap aggregate read. See SecureChat's own CLAUDE.md constraint #14 for the dual-write detail.
+
+## Phase 2 (Per-Project Cost Monitoring, ADR-003) — done
+
+Cost panel below LLM Health, rendering a `cost_health` block folded into `/api/public/status` — see ADR-003 (Monitoring Links' `docs/`) for the full design. Source of truth is Cloud Billing's Detailed usage cost BigQuery export, aggregated by a Monitoring Links cron job (not a new Cloud Function — that repo already owns cron + cache + the status payload) and cached; the frontend never touches BigQuery or holds a cloud credential, same trust boundary as `pipeline_health` and `llm_health`. No changes were needed in SecureChat, Fábula Infantil, or VergaraVerse — cost data comes from the billing export, not app instrumentation. See the [Cost panel behaviour](#cost-panel-behaviour) section above for the frontend contract.

@@ -1,0 +1,43 @@
+<div class="ch" aria-label="GCP cost monitoring">
+  <div class="ch__header">
+    <span class="ch__title text-mono">COST · {{ formatMonth(invoiceMonth) }}</span>
+    <span class="ch__window">mtd vs prev month</span>
+    @if (source === 'cache-stale') {
+      <span class="ch__tag">stale</span>
+    }
+  </div>
+
+  <div class="ch__rows" role="list">
+    @for (row of projects; track row.name) {
+      <div
+        class="ch__row"
+        [class.ch__row--healthy]="row.status === 'healthy'"
+        [class.ch__row--warning]="row.status === 'warning'"
+        role="listitem"
+        [attr.aria-label]="label(row.name) + ': ' + row.status"
+      >
+        <div class="ch__row-head">
+          <span class="ch__dot" aria-hidden="true"></span>
+          <span class="ch__name" [style.color]="accentColor(row.name)">{{ label(row.name) }}</span>
+          @if (row.status === 'warning') {
+            <span class="ch__tag" aria-hidden="true">over budget</span>
+          }
+        </div>
+        <div class="ch__stats">
+          <span class="ch__stat ch__stat--mtd">
+            <span class="ch__stat-label">mtd</span>
+            <span class="ch__stat-value">{{ formatCurrency(row.mtd) }}</span>
+          </span>
+          <span class="ch__stat ch__stat--prev">
+            <span class="ch__stat-label">prev</span>
+            <span class="ch__stat-value">{{ formatCurrency(row.prev_month) }}</span>
+          </span>
+        </div>
+      </div>
+    }
+  </div>
+
+  @if (totalMtd() !== null) {
+    <div class="ch__footer">total {{ formatCurrency(totalMtd()) }} mtd</div>
+  }
+</div>

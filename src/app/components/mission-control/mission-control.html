@@ -101,6 +101,15 @@
       @if (llmHealth(); as lh) {
         <app-llm-health [services]="lh.services" />
       }
+
+      @if (costHealth(); as ch) {
+        <app-cost-health
+          [projects]="ch.projects"
+          [source]="ch.source"
+          [invoiceMonth]="ch.invoice_month"
+          [currency]="ch.currency"
+        />
+      }
     </div>
   </div>
 </section>

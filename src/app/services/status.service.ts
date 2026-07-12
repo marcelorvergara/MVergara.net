@@ -72,11 +72,30 @@ export interface LlmHealth {
   services: LlmServiceHealth[];
 }
 
+export type CostHealthSource = 'bigquery-export' | 'cache-stale';
+export type CostStatus = 'healthy' | 'warning';
+
+export interface CostProjectRow {
+  name: string;
+  mtd?: number | null;
+  prev_month?: number | null;
+  status: CostStatus;
+}
+
+export interface CostHealth {
+  source: CostHealthSource;
+  generated_at: string;
+  invoice_month: string;
+  currency: string;
+  projects: CostProjectRow[];
+}
+
 export interface StatusResponse {
   generated_at: string;
   services: ServiceHealth[];
   pipeline_health?: PipelineHealth;
   llm_health?: LlmHealth;
+  cost_health?: CostHealth;
 }
 
 export type WidgetState = 'loading' | 'live' | 'fallback';
@@ -118,6 +137,18 @@ const FALLBACK_DATA: StatusResponse = {
     services: [
       { id: 'securechat', pillar_var: '--color-pillar-security', source: 'unavailable', status: 'healthy', requests_24h: null, avg_latency_ms: null, tokens_24h: null, cost_usd_24h: null, error_rate_pct: null },
       { id: 'fabula-infantil', pillar_var: '--color-pillar-ai', source: 'unavailable', status: 'healthy', requests_24h: null, avg_latency_ms: null, tokens_24h: null, cost_usd_24h: null, error_rate_pct: null },
+    ],
+  },
+  cost_health: {
+    source: 'bigquery-export',
+    generated_at: new Date().toISOString(),
+    invoice_month: new Date().toISOString().slice(0, 7).replace('-', ''),
+    currency: 'BRL',
+    projects: [
+      { name: 'vergaraverse', mtd: 0.07, prev_month: 1.47, status: 'healthy' },
+      { name: 'fabula-infantil', mtd: 0.18, prev_month: 0.77, status: 'healthy' },
+      { name: 'monitoring-links', mtd: 0.15, prev_month: 1.46, status: 'healthy' },
+      { name: 'securechat', mtd: 11.9, prev_month: 164.92, status: 'healthy' },
     ],
   },
 };
