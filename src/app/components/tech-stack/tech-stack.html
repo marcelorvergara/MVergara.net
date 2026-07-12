@@ -71,7 +71,7 @@
 
       <div class="stack__certs-row">
         <p class="stack__certs-row-label text-mono">Skill badges</p>
-        <div class="stack__certs-badges">
+        <div class="stack__certs-badges" id="skill-badges-list">
           @for (c of visibleBadges(); track c.name) {
             <a
               class="cert-badge"
@@ -89,6 +89,7 @@
               type="button"
               class="stack__certs-more"
               [attr.aria-expanded]="showAllBadges()"
+              aria-controls="skill-badges-list"
               (click)="toggleBadges()"
             >
               {{ showAllBadges() ? 'show less' : '+' + hiddenBadgeCount + ' more' }}

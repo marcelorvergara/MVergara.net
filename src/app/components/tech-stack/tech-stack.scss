@@ -138,6 +138,7 @@
 .cert-badge__date {
   color: var(--color-text-muted);
   font-size: 0.65rem;
+  white-space: nowrap;
 }
 
 .stack__certs-more {
@@ -149,11 +150,15 @@
   border-radius: 99px;
   color: var(--color-text-muted);
   cursor: pointer;
+  transition: color var(--transition-base), border-color var(--transition-base), background var(--transition-base);
 
+  // Neutral hover/focus family (not the accent-blue the credential pills use)
+  // so the control never reads as "one more credential" even mid-interaction.
   &:hover,
   &:focus-visible {
-    color: var(--color-accent);
-    border-color: var(--color-accent);
+    color: var(--color-text);
+    border-color: var(--color-text-muted);
+    background: var(--color-surface-2);
   }
 
   &:focus-visible {
