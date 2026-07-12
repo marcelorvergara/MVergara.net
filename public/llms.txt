@@ -1,0 +1,15 @@
+# Marcelo Vergara — the human in the circuit
+
+> Engineering high-performance systems — from bare-metal infrastructure to real-time data visualization and AI integration.
+
+## Projects
+
+- [ENP Secure Chat](https://enpsecurechat.com): Enterprise RAG assistant for O&G — FGA enforced inside Qdrant before any chunk is ranked, so restricted documents are mathematically invisible to the LLM.
+- [Fábula Infantil](https://fabulainfantil.com): Stateless multi-turn narrative control via GPT-4o mini — full choice history forwarded each request maintains continuity across three branching acts, with gpt-image-1 illustrations assembled into an animated 3D book.
+- [Monitoring Links](https://www.monitoringlinks.com): URL uptime monitoring — GCP Pub/Sub fans out one check per URL so the 5-minute cron returns in milliseconds regardless of fleet size, with OIDC-authenticated push delivery and a dead-letter topic ensuring no threshold alert is ever silently dropped.
+- [VergaraVerse](https://vergaraverse.com): GoPro GPMF binary telemetry parsed entirely in-browser via TinyGo WebAssembly — 60 Hz Canvas overlay, frame-accurate WebM export, zero server compute.
+
+## Contact
+
+- [GitHub](https://github.com/marcelorvergara)
+- [LinkedIn](https://www.linkedin.com/in/mvergara/)
