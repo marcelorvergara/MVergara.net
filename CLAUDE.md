@@ -39,11 +39,15 @@ Output directory for Cloudflare Pages: `dist/mvergara-net/browser`
 
 ## Design tokens (from `_tokens.scss`)
 
-**Pillar colours** (one per project, used as `var(--pillar-color)` on each card):
-- `--color-pillar-security` — ENP Secure Chat (red `#f55b5b`)
+**Pillar colours** (one per project, used as `var(--pillar-color)` on each card — **identity**, not status):
+- `--color-pillar-security` — ENP Secure Chat (blue `#3b82f6`)
 - `--color-pillar-ai` — Fábula Infantil (purple `#a855f7`)
 - `--color-pillar-infra` — Monitoring Links (green `#22c55e`)
 - `--color-pillar-edge` — VergaraVerse (amber `#f59e0b`)
+
+**Status colour**: `--color-status-danger` (red `#f55b5b`) — the sole token for genuine critical/down/alarm indicators across Mission Control (service dots, pipeline/LLM health critical rows, DLQ/error badges, sparkline danger states).
+
+`--color-pillar-security` and `--color-status-danger` used to be the same token (`--color-pillar-security`, red), which meant SecureChat's name rendered alarm-red even when healthy (visible in the Cost panel: red name next to a green "healthy" dot). Split in 2026-07 — `--color-status-danger` keeps the original red value unchanged for all status/alarm usages, while `--color-pillar-security` became blue ("blue team," fits SecureChat's brand, keeps identity-token saturation consistent with purple/green/amber). `--color-pillar-infra` (green/healthy) and `--color-pillar-edge` (amber/warning) still double as both identity and status colour — that's a milder, out-of-scope version of the same overlap (green-as-identity reinforces "healthy" rather than conflicting with it).
 
 **Surfaces**: `--color-bg` (#09090f) → `--color-surface` (#111118) → `--color-surface-2` (#1a1a25)
 
@@ -61,7 +65,7 @@ Output directory for Cloudflare Pages: `dist/mvergara-net/browser`
 
 - Renders inside the existing `.mc__frame`, below the service grid — one row per Pub/Sub topic: `url-check-tasks` (displayed as "URL Checks") and `alert-events` (displayed as "Alerts")
 - Per-row stats: `queued` (backlog), `oldest` (oldest-unacked age), `ack`/`nack` counts (24h), and a `DLQ n` badge shown only when `dlq_count > 0`
-- Status dot colour reuses existing pillar tokens, not new colours: healthy → `--color-pillar-infra` (green), warning → `--color-pillar-edge` (amber), critical → `--color-pillar-security` (red)
+- Status dot colour: healthy → `--color-pillar-infra` (green), warning → `--color-pillar-edge` (amber), critical → `--color-status-danger` (red, a dedicated status token — see [Design tokens](#design-tokens-from-_tokensscss))
 - Thresholds (mirrors backend `derivePipelineStatus` in Monitoring Links' `publicStatus.service.ts` — keep both in sync if either changes):
   - `critical` if `dlq_count > 0` or `oldest_unacked_age_s > 900` (15 min)
   - `warning` if `backlog > 0`, or `nack_count_24h > 0`, or `oldest_unacked_age_s > 300` (5 min)
@@ -73,7 +77,7 @@ Output directory for Cloudflare Pages: `dist/mvergara-net/browser`
 
 - Renders inside the existing `.mc__frame`, below the pipeline health panel — one row per LLM-backed project: `securechat` (ENP Secure Chat) and `fabula-infantil` (Fábula Infantil). Monitoring Links and VergaraVerse have no LLM in their request path, so they don't appear here.
 - Per-row stats: `requests_24h`, `avg_latency_ms` (end-to-end for SecureChat's blocking `/api/chat`, TTFT for its `/api/chat/stream`), `tokens_24h` (formatted like `12.2K`), `cost_usd_24h` (formatted like `$0.05`), and an `error_rate_pct` badge shown only when `> 0`
-- Status dot colour reuses the same pillar tokens as the pipeline health panel (not project identity colours): healthy → `--color-pillar-infra` (green), warning → `--color-pillar-edge` (amber), critical → `--color-pillar-security` (red). The project **name** text, separately, is coloured via the row's own `pillar_var` (`--color-pillar-security` for SecureChat, `--color-pillar-ai` for Fábula) so the dot still reads as "status" and the name still reads as "which project," instead of overloading one colour for both meanings.
+- Status dot colour reuses the same tokens as the pipeline health panel (not project identity colours): healthy → `--color-pillar-infra` (green), warning → `--color-pillar-edge` (amber), critical → `--color-status-danger` (red). The project **name** text, separately, is coloured via the row's own `pillar_var` (`--color-pillar-security` for SecureChat, `--color-pillar-ai` for Fábula) so the dot still reads as "status" and the name still reads as "which project" — this is exactly the separation that motivated splitting `--color-status-danger` out of `--color-pillar-security` (see [Design tokens](#design-tokens-from-_tokensscss)); before the split, a healthy-but-still-named-security-red SecureChat row looked alarmed even when its dot was green.
 - `LlmServiceHealth` metric fields are typed `number | null | undefined` (`?: number | null`) rather than the stricter `number | null` used elsewhere — the backend has been observed to omit fields entirely (not send `null`) when a service's data isn't populated yet, so the formatters treat "absent" and "explicit null" identically, both rendering as `—`
 - When a row's `source` is `"unavailable"` (Monitoring Links couldn't reach that app's `/internal/llm-metrics` endpoint, or the shared-secret auth failed), a small `no data` tag renders on the row, same honest-degraded convention as pipeline health's `counters only` tag
 - Thresholds are derived server-side by Monitoring Links, mirroring the same "keep both in sync" convention as pipeline health's `derivePipelineStatus`
