@@ -62,7 +62,7 @@
               rel="noopener noreferrer"
               [attr.aria-label]="c.name + ' certification, ' + dateLabel(c) + ', verify on Credly'"
             >
-              {{ c.name }}
+              <span class="cert-badge__name">{{ c.name }} <span class="cert-badge__icon" aria-hidden="true">↗</span></span>
               <span class="cert-badge__date">{{ dateLabel(c) }}</span>
             </a>
           }
@@ -80,7 +80,7 @@
               rel="noopener noreferrer"
               [attr.aria-label]="c.name + ' skill badge, ' + dateLabel(c) + ', verify on Credly'"
             >
-              {{ c.name }}
+              <span class="cert-badge__name">{{ c.name }} <span class="cert-badge__icon" aria-hidden="true">↗</span></span>
               <span class="cert-badge__date">{{ dateLabel(c) }}</span>
             </a>
           }
