@@ -34,6 +34,8 @@ Output directory for Cloudflare Pages: `dist/mvergara-net/browser`
 | `src/app/components/mission-control/pipeline-health/` | Sub-panel rendering the `pipeline_health` block (Pub/Sub topic rows: queued, oldest-unacked, ack/nack, DLQ badge) |
 | `src/app/components/mission-control/llm-health/` | Sub-panel rendering the `llm_health` block (per-service LLM telemetry rows: requests, latency, tokens, cost, error rate) |
 | `src/app/components/mission-control/cost-health/` | Sub-panel rendering the `cost_health` block (per-project GCP billing rows: MTD net cost, previous month, BRL-formatted via `Intl.NumberFormat`) |
+| `src/app/components/tech-stack/` | "Under the Hood" section — stack layer cards plus the CERTIFIED sub-section (certifications + skill badge pills) |
+| `src/app/data/credentials.data.ts` | Typed `Credential[]` data for the CERTIFIED section (`CERTIFICATIONS`, `SKILL_BADGES`) — name, issuer, date, `dateKind`, Credly URL |
 | `src/app/services/status.service.ts` | Fetches `/api/public/status` from Monitoring Links, 10 s timeout + 1 auto-retry + fallback + manual refresh. `STATUS_API` resolves to `http://localhost:3001/api/public/status` under `isDevMode()` and the production URL otherwise — no `src/environments/` setup exists (or is needed) for this one constant |
 | `src/app/utils/format-duration.ts` | Shared seconds→human-string formatter, used by Mission Control (incident duration) and the pipeline health panel (oldest-unacked age) |
 
@@ -60,6 +62,16 @@ Output directory for Cloudflare Pages: `dist/mvergara-net/browser`
 - **Pipeline**: CSS flexbox nodes (`<span class="pipeline__node">`) separated by `›` — no SVG
 - The `nodes[].x` and `nodes[].y` fields in `projects.data.ts` are unused (SVG was replaced); the `edges` array is also unused
 - Visit link inside overlay uses `$event.stopPropagation()` so clicking it doesn't toggle the card
+
+## CERTIFIED section behaviour
+
+- Lives at the bottom of `tech-stack` (Under the Hood), data-driven from `src/app/data/credentials.data.ts` — a typed `Credential` model (`name`, `type: 'certification' | 'skill-badge'`, `issuer`, `date`, `dateKind: 'valid-through' | 'issued'`, `credlyUrl`), not hardcoded markup. Adding/editing a credential only touches this data file.
+- Two rows: **Certifications** (`CERTIFICATIONS` — currently Associate Cloud Engineer + Cloud Digital Leader, both "valid through Sep 2027") and **Skill badges** (`SKILL_BADGES`, 7 entries). Only the first 4 `SKILL_BADGES` entries render by default — array order is the display contract (ADK Agents → GenAI Apps with Gemini → Cloud Security Fundamentals → Data Lifecycle Automation) — with a "+3 more" `<button>` toggling `TechStack.showAllBadges` (a signal) to reveal the rest; the button's label flips to "show less" and `aria-expanded` tracks the signal.
+- **Expired Google Cloud Professional certs (Cloud Architect, Cloud Developer, Cloud Database Engineer) are intentionally omitted from `credentials.data.ts` entirely** — they are not rendered in any de-emphasized form. Decision made 2026-07-12 after cross-referencing the live Credly profile found 3 of 5 previously-displayed certs had expired; showing expired credentials as current was judged a credibility risk. If re-adding expired credentials is ever requested, render them in a clearly de-emphasized/muted style, never in the same pill style as active credentials.
+- Every pill is a real `<a [href]="c.credlyUrl" target="_blank" rel="noopener noreferrer">`, not a styled `<span>` or click handler — keyboard-focusable and crawlable by default. `aria-label` spells out type + date + "verify on Credly" (e.g. "Associate Cloud Engineer certification, valid through Sep 2027, verify on Credly").
+- **Persistent `↗` link-affordance glyph** is appended after each badge name (`.cert-badge__icon`, `aria-hidden="true"` since the `aria-label` already announces the link) at ~55% opacity, brightening to 100% on hover/focus. Added 2026-07-12 because the pill's border/colour alone only signalled "clickable" via desktop `:hover` — mobile/touch users had no affordance at all. Same visual convention as project-card's "View architecture ↗" and footer's "Available for contracts ↗" — reuse that glyph for any future "this is an external link" affordance rather than inventing a new one.
+- **Mobile (`≤640px`) layout is intentionally not just a shrunk pill.** A rounded-99px pill self-collides once a badge name wraps to 2+ lines — the trailing date wraps alongside it inside the same pill, producing a ragged two-column look. Below 640px, `.cert-badge` switches to a full-width rectangular row (`--radius-md`, matching the breakpoint/radius convention already used by the mission-control sub-panels) with name on top and date below, `.stack__certs-more` also goes full-width for a consistent tap target.
+- `credlyUrl` values are the real per-badge Credly public URLs (filled in 2026-07-12, replacing initial `TODO_CREDLY_URL_*` placeholders) — if a new credential is added without its real URL yet, use a `TODO_CREDLY_URL_<NAME>` placeholder in the same style so it's grep-able.
 
 ## Pipeline health panel behaviour
 
