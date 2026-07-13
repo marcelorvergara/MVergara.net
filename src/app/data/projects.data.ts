@@ -92,7 +92,7 @@ export const PROJECTS: Project[] = [
     url: 'https://vergaraverse.com',
     pillar: 'Edge Computing & Telemetry',
     pillarVar: '--color-pillar-edge',
-    hook: 'GoPro GPMF binary telemetry parsed entirely in-browser via TinyGo WebAssembly — 60 Hz Canvas overlay, frame-accurate WebM export, zero server compute.',
+    hook: 'GoPro GPMF binary telemetry — parsed entirely in-browser via TinyGo WebAssembly, zero server compute — drives a 60 Hz Canvas HUD with frame-accurate WebM export, Strava GPX sync, live street-name geocoding, and a hand-rolled vector map with zero DOM dependencies.',
     rationale:
       "TinyGo's lack of reflection support forced every KLV field read to use explicit BigEndian helpers and every result JSON to be built by string concatenation — constraints that produce a parser small enough to fit inside the 64 MB browser heap shared with the 4K video decoder. The Web Worker hosting the WASM instance is terminated immediately after the parse result arrives, releasing the entire WebAssembly.Memory in one atomic step rather than waiting for GC.",
     nodes: [
