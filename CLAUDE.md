@@ -44,14 +44,20 @@ Output directory for Cloudflare Pages: `dist/mvergara-net/browser`
 ## Design tokens (from `_tokens.scss`)
 
 **Pillar colours** (one per project, used as `var(--pillar-color)` on each card — **identity**, not status):
-- `--color-pillar-security` — ENP Secure Chat (blue `#3b82f6`)
+- `--color-pillar-security` — ENP Secure Chat (cyan `#22d3ee`)
 - `--color-pillar-ai` — Fábula Infantil (purple `#a855f7`)
-- `--color-pillar-infra` — Monitoring Links (green `#22c55e`)
-- `--color-pillar-edge` — VergaraVerse (amber `#f59e0b`)
+- `--color-pillar-infra` — Monitoring Links (neutral slate `#cbd5e1`)
+- `--color-pillar-edge` — VergaraVerse (pink/magenta `#ec4899`)
 
-**Status colour**: `--color-status-danger` (red `#f55b5b`) — the sole token for genuine critical/down/alarm indicators across Mission Control (service dots, pipeline/LLM health critical rows, DLQ/error badges, sparkline danger states).
+**Status colours**: `--color-status-healthy` (green `#22c55e`), `--color-status-warning` (amber `#f59e0b`), `--color-status-danger` (red `#f55b5b`) — the only tokens for genuine healthy/warning/critical indicators across Mission Control (service dots, pipeline/LLM/cost health rows, DLQ/error badges, sparkline states). Every status-dot/badge/sparkline usage reads one of these three, never a `--color-pillar-*` token directly.
 
-`--color-pillar-security` and `--color-status-danger` used to be the same token (`--color-pillar-security`, red), which meant SecureChat's name rendered alarm-red even when healthy (visible in the Cost panel: red name next to a green "healthy" dot). Split in 2026-07 — `--color-status-danger` keeps the original red value unchanged for all status/alarm usages, while `--color-pillar-security` became blue ("blue team," fits SecureChat's brand, keeps identity-token saturation consistent with purple/green/amber). `--color-pillar-infra` (green/healthy) and `--color-pillar-edge` (amber/warning) still double as both identity and status colour — that's a milder, out-of-scope version of the same overlap (green-as-identity reinforces "healthy" rather than conflicting with it).
+`--color-pillar-security` and `--color-status-danger` used to be the same token (`--color-pillar-security`, red), which meant SecureChat's name rendered alarm-red even when healthy (visible in the Cost panel: red name next to a green "healthy" dot). Split in 2026-07 — `--color-status-danger` keeps the original red value unchanged for all status/alarm usages, while `--color-pillar-security` became blue (`#3b82f6`, "blue team," fits SecureChat's brand).
+
+That fix was later found to be incomplete: `--color-pillar-security` (`#3b82f6`) still sat close enough in hue to `--color-accent` (`#5b8af5`, used for all panel/section titles — SYSTEM STATUS, PIPELINE HEALTH, LLM HEALTH, GCP COST) that SecureChat's name blended into the structural headings around it. Separately, `--color-pillar-infra` (green) and `--color-pillar-edge` (amber) were literally the same tokens rendered for the healthy/warning status dots — not just a similar-looking green, the identical CSS variable doing double duty as both "this is Monitoring Links" and "this row is healthy." Fixed 2026-07-14 in two parts:
+1. Introduced dedicated `--color-status-healthy` / `--color-status-warning` tokens (same hex values as before) and repointed every status-dot/badge/sparkline usage at them instead of `--color-pillar-infra`/`--color-pillar-edge` directly — same decoupling already done for danger/security, now applied consistently to all three status states.
+2. With `--color-pillar-infra` now free of status duty, gave Monitoring Links its own neutral slate identity colour (`#cbd5e1`) instead of green — deliberately muted rather than another vibrant hue, since Monitoring Links is the meta-monitoring/infra utility among the four projects, not a flagship product competing for visual weight. Also moved `--color-pillar-security` to cyan (`#22d3ee`) — clear of both `--color-accent`'s hue and the other three pillar hues — to fully resolve the title/identity blue collision the first split left in place.
+
+`--color-pillar-edge` (VergaraVerse) was initially left at its original amber value on 2026-07-14, on the assumption that the overlap with `--color-status-warning` was now purely coincidental (same hex, decoupled tokens) rather than a live conflict. That assumption didn't hold in practice — a same-day screenshot of the Cost panel showed VergaraVerse's amber name directly below Monitoring Links' amber "over budget" warning tag, reading as if VergaraVerse were also in a warning state despite its dot being green/healthy. Recoloured the same day to pink/magenta `#ec4899` (hue 330°, clear of both `--color-pillar-ai`'s purple at 271° and `--color-status-danger`'s red at 0°/360°). Lesson: a token being *architecturally* decoupled from status rendering doesn't make a *value* collision with a status colour harmless — the two are independent risks and both need checking.
 
 **Surfaces**: `--color-bg` (#09090f) → `--color-surface` (#111118) → `--color-surface-2` (#1a1a25)
 

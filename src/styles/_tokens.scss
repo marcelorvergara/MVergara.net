@@ -9,14 +9,19 @@
   --color-accent:       #5b8af5;
   --color-accent-glow:  rgba(91, 138, 245, 0.15);
 
-  // Semantic status colour — critical/down/danger indicators across mission-control
+  // Semantic status colours — healthy/warning/critical indicators across mission-control.
+  // Kept as dedicated tokens (not reused pillar colours) so a project's identity
+  // colour can change independently of what "healthy"/"warning" render as — see
+  // the pillar-security/status-danger split below for why this separation matters.
+  --color-status-healthy:    #22c55e;
+  --color-status-warning:    #f59e0b;
   --color-status-danger:     #f55b5b;
 
-  // Pillar badge colours — one per project
-  --color-pillar-security:   #3b82f6;
+  // Pillar badge colours — one per project (identity, not status)
+  --color-pillar-security:   #22d3ee;
   --color-pillar-ai:         #a855f7;
-  --color-pillar-infra:      #22c55e;
-  --color-pillar-edge:       #f59e0b;
+  --color-pillar-infra:      #cbd5e1;
+  --color-pillar-edge:       #ec4899;
 
   // Typography
   --font-sans:   'Inter', system-ui, -apple-system, sans-serif;
