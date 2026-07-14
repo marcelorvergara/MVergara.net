@@ -5,7 +5,7 @@
 
 .ch__header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: var(--space-3);
   margin-bottom: var(--space-3);
 }
@@ -104,6 +104,15 @@
 }
 
 @media (max-width: 640px) {
+  .ch__header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .ch__window {
+    margin-left: 0;
+  }
+
   .ch__row {
     flex-direction: column;
     align-items: stretch;

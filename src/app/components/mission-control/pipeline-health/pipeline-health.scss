@@ -5,7 +5,7 @@
 
 .ph__header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: var(--space-3);
   margin-bottom: var(--space-3);
 }
@@ -114,6 +114,15 @@
 }
 
 @media (max-width: 640px) {
+  .ph__header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .ph__window {
+    margin-left: 0;
+  }
+
   .ph__row {
     flex-direction: column;
     align-items: stretch;
