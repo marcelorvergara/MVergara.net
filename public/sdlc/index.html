@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fabric Agentic SDLC v2 &#x2014; Interactive Walkthrough</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0B1120; --panel:#141C2F; --panel-2:#1B2540; --line:#2A3654;
+    --text:#E4EAF5; --muted:#8A97B4;
+    --human:#4CC3F7; --agent:#F5B93D; --tool:#3FD68F; --code:#C08CF6;
+    --human-dim:#173349; --agent-dim:#3A2F14; --tool-dim:#123527; --code-dim:#2E1E45;
+    --danger:#F97066;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html,body{height:100%;}
+  body{
+    background:var(--bg); color:var(--text);
+    font-family:'Space Grotesk', system-ui, sans-serif;
+    height:100vh; display:flex; flex-direction:column; overflow:hidden;
+  }
+  .mono{font-family:'IBM Plex Mono', ui-monospace, monospace;}
+
+  header{
+    display:flex; align-items:baseline; gap:18px; flex-wrap:wrap;
+    padding:16px 28px 10px; border-bottom:1px solid var(--line); flex:0 0 auto;
+  }
+  header h1{font-size:1.25rem; font-weight:700; letter-spacing:.01em;}
+  header h1 .v{color:var(--agent);}
+  header p{color:var(--muted); font-size:.87rem;}
+
+  .toolbar{
+    display:flex; align-items:center; gap:14px; flex-wrap:wrap;
+    padding:10px 28px; border-bottom:1px solid var(--line); background:rgba(20,28,47,.5); flex:0 0 auto;
+  }
+  .tabs{display:flex; gap:6px;}
+  .tab{
+    font-family:'IBM Plex Mono',monospace; font-size:.76rem; letter-spacing:.04em;
+    padding:7px 13px; border-radius:6px; border:1px solid var(--line);
+    background:transparent; color:var(--muted); cursor:pointer; transition:all .15s;
+  }
+  .tab:hover{color:var(--text); border-color:var(--muted);}
+  .tab.active{background:var(--panel-2); color:var(--agent); border-color:var(--agent);}
+  .tab.mode.active{color:var(--human); border-color:var(--human);}
+  .tab:focus-visible, button:focus-visible{outline:2px solid var(--human); outline-offset:2px;}
+  .tb-label{font-family:'IBM Plex Mono',monospace; font-size:.66rem; color:var(--muted); letter-spacing:.12em;}
+
+  .spacer{flex:1;}
+  .legend{display:flex; gap:14px; font-size:.72rem; color:var(--muted); font-family:'IBM Plex Mono',monospace;}
+  .legend span{display:flex; align-items:center; gap:5px;}
+  .dot{width:9px; height:9px; border-radius:50%;}
+
+  main{flex:1 1 auto; display:grid; grid-template-columns:1fr 350px; min-height:0;}
+  .stage{position:relative; padding:8px; min-height:0;}
+  svg{width:100%; height:100%; display:block;}
+
+  aside{
+    border-left:1px solid var(--line); background:var(--panel);
+    display:flex; flex-direction:column; padding:18px 20px; gap:13px; min-width:0;
+    overflow-y:auto;
+  }
+  .step-count{font-family:'IBM Plex Mono',monospace; font-size:.7rem; color:var(--muted); letter-spacing:.08em;}
+  .actor-badge{
+    display:inline-flex; align-items:center; gap:7px; align-self:flex-start;
+    font-family:'IBM Plex Mono',monospace; font-size:.68rem; font-weight:600; letter-spacing:.1em;
+    padding:5px 11px; border-radius:4px;
+  }
+  .actor-badge.human{background:var(--human-dim); color:var(--human); border:1px solid var(--human);}
+  .actor-badge.agent{background:var(--agent-dim); color:var(--agent); border:1px solid var(--agent);}
+  .actor-badge.tool{background:var(--tool-dim); color:var(--tool); border:1px solid var(--tool);}
+  .actor-badge.code{background:var(--code-dim); color:var(--code); border:1px solid var(--code);}
+  .actor-badge.human.gate{animation:pulse 1.6s ease-in-out infinite;}
+  @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(76,195,247,.35);}50%{box-shadow:0 0 0 7px rgba(76,195,247,0);}}
+
+  .narr h2{font-size:1.08rem; font-weight:700; line-height:1.3;}
+  .narr .body{color:var(--muted); font-size:.87rem; line-height:1.55; margin-top:7px;}
+  .why{
+    border-left:3px solid var(--agent); background:rgba(245,185,61,.06);
+    padding:9px 13px; border-radius:0 6px 6px 0; font-size:.8rem; line-height:1.5; color:var(--text);
+  }
+  .why b{color:var(--agent); font-family:'IBM Plex Mono',monospace; font-size:.66rem; letter-spacing:.1em; display:block; margin-bottom:3px;}
+
+  .attempts{
+    display:none; font-family:'IBM Plex Mono',monospace; font-size:.75rem;
+    padding:8px 12px; border-radius:6px; border:1px dashed var(--line); color:var(--muted);
+  }
+  .attempts.on{display:block;}
+  .attempts .n{color:var(--agent); font-weight:600;}
+  .attempts .fail{color:var(--danger);}
+  .attempts .ok{color:var(--tool);}
+
+  /* ------- interactive decision area ------- */
+  .decisions{display:none; flex-direction:column; gap:7px;}
+  .decisions.on{display:flex;}
+  .dec-label{font-family:'IBM Plex Mono',monospace; font-size:.66rem; letter-spacing:.14em; color:var(--human);}
+  .dec-btn{
+    text-align:left; padding:11px 14px; border-radius:8px; cursor:pointer;
+    border:1px solid var(--human); background:var(--human-dim); color:var(--text);
+    font-family:'Space Grotesk',sans-serif; font-size:.87rem; font-weight:500; transition:all .12s;
+  }
+  .dec-btn:hover{background:rgba(76,195,247,.22); transform:translateX(2px);}
+  .dec-btn small{display:block; color:var(--muted); font-size:.72rem; font-weight:400; margin-top:2px;}
+  .dec-btn.neutral{border-color:var(--line); background:var(--panel-2);}
+  .dec-btn.neutral:hover{border-color:var(--muted);}
+
+  .log{
+    display:none; flex-direction:column; gap:3px;
+    font-family:'IBM Plex Mono',monospace; font-size:.68rem; line-height:1.5; color:var(--muted);
+    border:1px solid var(--line); border-radius:7px; padding:10px 12px;
+    max-height:130px; overflow-y:auto;
+  }
+  .log.on{display:flex;}
+  .log .h{color:var(--human);} .log .a{color:var(--agent);} .log .bad{color:var(--danger);} .log .ok{color:var(--tool);}
+
+  .controls{margin-top:auto; display:flex; flex-direction:column; gap:11px;}
+  .progress{height:4px; background:var(--panel-2); border-radius:2px; overflow:hidden;}
+  .progress i{display:block; height:100%; background:var(--agent); border-radius:2px; transition:width .3s ease; width:0;}
+  .btns{display:flex; gap:8px;}
+  .btns button{
+    flex:1; padding:10px 0; border-radius:7px; border:1px solid var(--line);
+    background:var(--panel-2); color:var(--text); font-family:'Space Grotesk',sans-serif;
+    font-size:.86rem; font-weight:500; cursor:pointer; transition:all .15s;
+  }
+  .btns button:hover{border-color:var(--muted);}
+  .btns button.play{background:var(--agent); color:#141C2F; border-color:var(--agent); font-weight:700;}
+  .btns button:disabled{opacity:.35; cursor:default;}
+  .hint{font-size:.7rem; color:var(--muted); text-align:center; font-family:'IBM Plex Mono',monospace;}
+
+  .pathline{
+    font-family:'IBM Plex Mono',monospace; font-size:.68rem; letter-spacing:.07em;
+    color:var(--muted); padding:2px 2px 0;
+  }
+  .pathline b, .runline b{font-weight:600;}
+  .pathline .h, .runline .h{color:var(--human);}
+  .pathline .a, .runline .a{color:var(--agent);}
+  .pathline .l, .runline .l{color:var(--tool);}
+  .runline{
+    display:none; font-family:'IBM Plex Mono',monospace; font-size:.68rem; letter-spacing:.07em;
+    color:var(--muted); padding:0 2px; border-top:1px dashed var(--line); padding-top:6px;
+  }
+  .runline.on{display:block;}
+
+  /* SVG element styles */
+  .edge{fill:none; stroke:var(--line); stroke-width:1.6;}
+  .edge.fb{stroke-dasharray:5 5; opacity:.55;}
+  .edge.lit{stroke:var(--agent); stroke-width:2.4; opacity:1;}
+  .node rect{rx:9; transition:all .25s;}
+  .node text{fill:var(--text); font-family:'Space Grotesk',sans-serif; font-size:12.5px; font-weight:500;}
+  .node .sub{fill:var(--muted); font-size:10px; font-family:'IBM Plex Mono',monospace;}
+  .node{cursor:pointer;}
+  .node.off{opacity:.28;}
+  .node.current rect{filter:drop-shadow(0 0 10px currentColor);}
+  .loop-ring{fill:none; stroke:var(--line); stroke-dasharray:3 7; stroke-width:1.4; opacity:.8;}
+  .sel-ring{stroke:var(--agent); stroke-width:2; stroke-dasharray:7 6; animation:march 5s linear infinite;}
+  @keyframes march{to{stroke-dashoffset:-130;}}
+  .loop-lbl{fill:var(--muted); font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:.15em;}
+  #chip{transition:transform .55s cubic-bezier(.4,0,.2,1); pointer-events:none;}
+  #chip circle.core{fill:var(--agent);}
+  #chip circle.halo{fill:none; stroke:var(--agent); opacity:.6; animation:halo 1.8s ease-out infinite;}
+  @keyframes halo{0%{r:8; opacity:.6;}100%{r:20; opacity:0;}}
+  @media (prefers-reduced-motion: reduce){
+    #chip{transition:none;} .actor-badge.human.gate{animation:none;} #chip circle.halo{animation:none;}
+    .sel-ring{animation:none;}
+  }
+  @media (max-width: 900px){
+    body{height:auto; overflow:auto;}
+    main{grid-template-columns:1fr;}
+    aside{border-left:none; border-top:1px solid var(--line);}
+    .stage{min-height:auto; overflow-x:auto; -webkit-overflow-scrolling:touch;}
+    .stage svg{min-width:950px; height:560px;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>FABRIC AGENTIC SDLC <span class="v">v2</span></h1>
+  <p>Follow one ticket from intake to production &#x2014; agents do the work, humans hold the gates.</p>
+</header>
+
+<div class="toolbar">
+  <span class="tb-label">TICKET</span>
+  <div class="tabs" role="group" aria-label="Workflow path">
+    <button class="tab path active" data-path="feature" aria-pressed="true">FEATURE / BUG</button>
+    <button class="tab path" data-path="hotfix" aria-pressed="false">HOTFIX</button>
+    <button class="tab path" data-path="chore" aria-pressed="false">CHORE</button>
+  </div>
+  <span class="tb-label" style="margin-left:10px">MODE</span>
+  <div class="tabs" role="group" aria-label="Mode">
+    <button class="tab mode active" data-mode="tour" aria-pressed="true">&#x25B6; TOUR</button>
+    <button class="tab mode" data-mode="interactive" aria-pressed="false">&#x1F3AE; YOU DECIDE</button>
+  </div>
+  <div class="spacer"></div>
+  <div class="legend">
+    <span><i class="dot" style="background:var(--human)"></i>Human</span>
+    <span><i class="dot" style="background:var(--agent)"></i>Agent</span>
+    <span><i class="dot" style="background:var(--tool)"></i>Tool</span>
+    <span><i class="dot" style="background:var(--code)"></i>Code / Deploy</span>
+  </div>
+</div>
+
+<main>
+  <div class="stage"><svg id="svg" viewBox="0 0 1100 660" aria-label="Pipeline diagram"></svg></div>
+
+  <aside>
+    <div class="step-count mono" id="stepCount">STEP 1 / 21</div>
+    <div aria-live="polite" id="liveWrap" style="display:contents">
+    <span class="actor-badge agent" id="badge">AGENT</span>
+    <div class="narr">
+      <h2 id="narrTitle">&#x2014;</h2>
+      <p class="body" id="narrBody">&#x2014;</p>
+    </div>
+    <div class="why" id="whyBox"><b>WHY IT MATTERS</b><span id="whyText">&#x2014;</span></div>
+    <div class="pathline" id="pathLine">&#x2014;</div>
+    <div class="runline" id="runLine">&#x2014;</div>
+    </div>
+    <div class="attempts" id="attempts">LOOP BUDGET &#x2014; attempt <span class="n" id="attN">1</span> / 3 &#xB7; <span id="attState"></span></div>
+
+    <div class="decisions" id="decisions">
+      <div class="dec-label" id="decLabel">YOUR CALL, DEVELOPER &#x2014;</div>
+      <div id="decBtns" style="display:flex;flex-direction:column;gap:7px;"></div>
+    </div>
+
+    <div class="log" id="log" aria-label="Run log" aria-live="polite"></div>
+
+    <div class="controls">
+      <div class="progress" id="progWrap"><i id="prog"></i></div>
+      <div class="btns" id="tourBtns">
+        <button id="prevBtn">&#x2190; Prev</button>
+        <button id="playBtn" class="play">&#x25B6; Play</button>
+        <button id="speedBtn" title="Autoplay speed" style="flex:0 0 52px">1&#xD7;</button>
+        <button id="nextBtn">Next &#x2192;</button>
+      </div>
+      <div class="hint" id="hintTxt">click any node to jump &#xB7; &#x2190; &#x2192; keys work too</div>
+    </div>
+  </aside>
+</main>
+
+<script>
+const C = {human:'var(--human)', agent:'var(--agent)', tool:'var(--tool)', code:'var(--code)'};
+const CD = {human:'var(--human-dim)', agent:'var(--agent-dim)', tool:'var(--tool-dim)', code:'var(--code-dim)'};
+
+const NODES = {
+  SN:      {x:120, y:80,  w:158, k:'tool',  l:'ServiceNow Intake', s:'Support \u00B7 PM \u00B7 Dev'},
+  TRIAGE:  {x:120, y:180, w:158, k:'agent', l:'Triage Agent', s:'enrich \u00B7 classify'},
+  PICK:    {x:120, y:280, w:158, k:'human', l:'Developer Picks', s:'HUMAN GATE', gate:true},
+  SCOUT:   {x:120, y:380, w:158, k:'agent', l:'Scout Agent', s:'codebase context'},
+  ROUTER:  {x:330, y:120, w:150, k:'agent', l:'Routing Agent', s:'hotfix \u00B7 feat \u00B7 chore'},
+  PLANNING:{x:330, y:250, w:150, k:'agent', l:'Planning Agent', s:'spec \u00B7 \u2264700-line PRs'},
+  PLANGATE:{x:330, y:370, w:150, k:'human', l:'Plan Review', s:'HUMAN GATE', gate:true},
+  HOTFIX:  {x:330, y:495, w:150, k:'agent', l:'Hotfix Agent', s:'expedited path'},
+  HFGATE:  {x:330, y:600, w:150, k:'human', l:'Quick Review', s:'HUMAN GATE', gate:true},
+  BUILD:   {x:630, y:165, w:150, k:'agent', l:'Build Agent', s:'GH Actions \u00B7 draft PR'},
+  TEST:    {x:762, y:258, w:140, k:'agent', l:'Test Agent', s:'unit + integration'},
+  SCANS:   {x:712, y:412, w:150, k:'tool',  l:'Checkmarx + Sonar', s:'existing pipeline'},
+  REVIEW:  {x:548, y:412, w:146, k:'agent', l:'Review Agent', s:'triage findings'},
+  FIXHUB:  {x:498, y:258, w:140, k:'tool',  l:'Fix Context Hub', s:'failures \u00B7 findings'},
+  ESCALATE:{x:630, y:565, w:150, k:'human', l:'Escalate to Dev', s:'budget exceeded', gate:true},
+  REPORT:  {x:950, y:110, w:150, k:'tool',  l:'Consolidated Report', s:'tests \u00B7 scans \u00B7 diff'},
+  DECISION:{x:950, y:210, w:150, k:'human', l:'Merge Decision', s:'HUMAN GATE', gate:true},
+  HMG:     {x:950, y:310, w:150, k:'code',  l:'Merge to HMG', s:'homologation'},
+  VALIDATE:{x:950, y:400, w:150, k:'agent', l:'HMG Validation', s:'smoke \u00B7 QA'},
+  PRODGATE:{x:950, y:490, w:150, k:'human', l:'Promote to PROD?', s:'HUMAN GATE', gate:true},
+  PROD:    {x:950, y:580, w:150, k:'code',  l:'Deploy PROD', s:'close ticket \u00B7 telemetry'},
+};
+
+const EDGES = [
+  ['SN','TRIAGE'],['TRIAGE','PICK'],['PICK','SCOUT'],['SCOUT','ROUTER'],
+  ['ROUTER','PLANNING'],['ROUTER','HOTFIX',0,.45],['ROUTER','BUILD',0,-.25],
+  ['PLANNING','PLANGATE'],['PLANGATE','PLANNING',1,.5],['PLANGATE','BUILD',0,-.3],
+  ['HOTFIX','HFGATE'],['HFGATE','HOTFIX',1,.5],['HFGATE','FIXHUB',0,-.35],
+  ['FIXHUB','BUILD',0,.28],['BUILD','TEST',0,.28],['TEST','SCANS',0,.28],
+  ['SCANS','REVIEW',0,.28],['TEST','FIXHUB',1,0],['REVIEW','FIXHUB',1,.28],
+  ['TEST','ESCALATE',1,.3],['ESCALATE','FIXHUB',1,.3],
+  ['REVIEW','REPORT',0,-.3],['REPORT','DECISION'],['DECISION','HMG'],
+  ['DECISION','FIXHUB',1,-.35],['HMG','VALIDATE'],['VALIDATE','PRODGATE'],
+  ['VALIDATE','FIXHUB',1,.4],['PRODGATE','PROD'],['PROD','SN',1,.35],
+];
+
+// ---------- Tour scripts ----------
+const S = (node, title, actor, text, why, opts={}) => ({node, title, actor, text, why, ...opts});
+
+const INTRO = [
+  S('SN','A ticket is born','tool',
+    'Support, PMs, and developers all file work in one place: ServiceNow. Nothing enters the pipeline through side channels \u2014 the ticket is the single source of truth from day one.',
+    'One intake means one queue to prioritize, one audit trail, and no "someone asked me on Slack" work.'),
+  S('TRIAGE','Triage Agent enriches it','agent',
+    'Before any human touches the ticket, an agent enriches it: classifies the type, links related tickets, estimates priority, and writes back to ServiceNow.',
+    'Humans pick from a pre-organized queue instead of raw noise. Grooming becomes continuous, not a weekly meeting.'),
+  S('PICK','A developer picks it up','human',
+    'A developer chooses which requirement to run. Agents never self-assign work \u2014 every cycle starts with a deliberate human decision.',
+    'Ownership stays with people. The developer who picks the ticket is accountable for everything the agents do with it.', {gate:true}),
+  S('SCOUT','Scout Agent gathers context','agent',
+    'The Scout explores the codebase: related modules, coding guidelines, prior tickets, recent changes in the same area. It packages this into structured context for everything downstream.',
+    'Agent output quality is mostly a context problem. Good scouting here is the cheapest quality lever in the whole pipeline.'),
+];
+
+const LOOP_PASS = (attempt) => [
+  S('BUILD',`Build Agent \u2014 attempt ${attempt}`,'agent',
+    attempt===1
+      ? 'The Build Agent implements the approved plan in GitHub Actions and opens a draft PR \u2014 small by design, capped at ~700 lines.'
+      : 'The Build Agent picks up the Fix Context package \u2014 failure logs, findings, file/line pointers \u2014 and produces a corrected commit on the same draft PR.',
+    attempt===1
+      ? 'Small PRs keep every later step \u2014 testing, scanning, human review \u2014 fast and reliable.'
+      : 'The agent fixes with precise context, not guesswork. Same input format whether the feedback came from tests, scanners, or a human.',
+    {attempt, attState:'building'}),
+];
+
+const FEATURE = [
+  ...INTRO,
+  S('ROUTER','Routing Agent classifies','agent',
+    'Using the Scout\u2019s context, the router classifies the work: this one is a Feature. Features and bugs get full planning; chores skip it; hotfixes take the expedited lane.',
+    'The type decides how much process the ticket gets \u2014 heavyweight rigor only where it pays for itself.'),
+  S('PLANNING','Planning Agent writes the spec','agent',
+    'The Planning Agent produces a spec: approach, files to touch, test strategy, and a breakdown into PRs of at most ~700 lines each.',
+    'A plan is the cheapest artifact to correct. Rejecting a bad plan costs seconds; rejecting a bad PR costs a full agent cycle.'),
+  S('PLANGATE','Human approves the plan','human',
+    'The developer reviews the spec before a single line is written. Approve, send back with feedback, or flag the requirement itself as wrong (back to ServiceNow).',
+    'This is the highest-leverage human moment in the pipeline: steering intent while change is still free.', {gate:true}),
+  ...LOOP_PASS(1),
+  S('TEST','Test Agent runs \u2014 FAIL','agent',
+    'Unit and integration tests run against the draft PR. Two integration tests fail. Attempt 1 of the loop budget is spent.',
+    'Failure is an expected, budgeted event \u2014 not an alert that pages a human.', {attempt:1, attState:'fail'}),
+  S('FIXHUB','Failure feeds the Fix Hub','tool',
+    'The failure report \u2014 stack traces, failing assertions, diff context \u2014 is packaged into the Fix Context Hub, the single channel through which all feedback reaches the Build Agent.',
+    'One feedback format for everything: test failures, scan findings, review comments, human requests. One channel, no spaghetti.', {attempt:1, attState:'fail'}),
+  ...LOOP_PASS(2),
+  S('TEST','Test Agent runs \u2014 PASS','agent',
+    'The corrected code goes through the full suite again. All green on attempt 2, well inside the 3-attempt budget. Had it failed 3 times, the loop would stop and escalate to the developer.',
+    'The retry budget is the safety valve: agents never burn tokens indefinitely, and hard problems reach a human fast.', {attempt:2, attState:'pass'}),
+  S('SCANS','Checkmarx + Sonar run','tool',
+    'The existing pipeline does what it already does today: Checkmarx runs SAST, SonarQube checks the quality gate. Nothing new was built here \u2014 the pipeline you trust is unchanged.',
+    'The agentic layer wraps around existing security and quality tooling. Adoption story: nothing you rely on is replaced.'),
+  S('REVIEW','Review Agent triages findings','agent',
+    'The Review Agent parses the SARIF and Sonar reports, filters known false positives against policy, does a code-review pass, and decides: loop actionable findings back, or hand off clean.',
+    'Raw scanner output is noisy. Triage turns red X\u2019s into either automatic fixes or a signal-only report for the human.'),
+  S('REPORT','Consolidated report','tool',
+    'Everything converges into one artifact: test results, Sonar and Checkmarx summaries, the review verdict, and a diff summary. This is what the human actually reads.',
+    'The developer reviews one curated page \u2014 not four dashboards and a 400-line diff cold.'),
+  S('DECISION','Human merge decision','human',
+    'The developer decides: merge, request changes (comments flow into the Fix Hub \u2014 full context preserved, no restart), or re-scope back to planning.',
+    '"Request changes" loops, it doesn\u2019t reset. The old flow threw away the whole cycle; v2 keeps every bit of work and context.', {gate:true}),
+  S('HMG','Merge to HMG','code',
+    'The PR merges into the homologation environment. The ServiceNow ticket status updates automatically \u2014 the ticket lifecycle and the code lifecycle stay in sync.',
+    'Nobody updates tickets by hand, so ticket state is finally trustworthy.'),
+  S('VALIDATE','HMG validation','agent',
+    'Smoke tests and QA checks run against HMG. A failure here feeds the Fix Hub like any other failure \u2014 same loop, later stage.',
+    'Post-merge issues re-enter the same self-correcting machinery instead of spawning ad-hoc firefighting.'),
+  S('PRODGATE','Promote to PROD?','human',
+    'A human makes the production call. Agents prepare everything; the go/no-go for prod is never automated.',
+    'The blast-radius decision stays human. This is the line that makes the whole system safe to trust.', {gate:true}),
+  S('PROD','Deployed \u2014 loop closed','code',
+    'The change ships. The ServiceNow ticket closes automatically, and production telemetry flows back into intake \u2014 incidents become tickets, and the cycle begins again.',
+    'The pipeline is a closed loop, not a conveyor belt: what production teaches us feeds the next ticket.'),
+];
+
+const HOTFIX = [
+  ...INTRO,
+  S('ROUTER','Routing Agent: HOTFIX','agent',
+    'The router recognizes an urgent production issue and sends it down the expedited lane \u2014 planning is skipped, but no safety gate is.',
+    'Speed comes from removing ceremony, never from removing verification.'),
+  S('HOTFIX','Hotfix Agent drafts a fix','agent',
+    'Armed with the Scout\u2019s context, the Hotfix Agent goes straight to a minimal, surgical fix proposal.',
+    'Smallest possible change, fastest possible path \u2014 exactly what you want at 2 AM.'),
+  S('HFGATE','Quick human review','human',
+    'The developer sanity-checks the proposed fix before it enters the build loop. Seconds, not a meeting.',
+    'Even the fastest lane has a human on it before code runs anywhere.', {gate:true}),
+  ...LOOP_PASS(1),
+  S('TEST','Tests pass first try','agent',
+    'The focused fix passes the suite on attempt 1 \u2014 typical for surgical hotfixes.',
+    'Same rigor as any change: hotfixes are fast, not exempt.', {attempt:1, attState:'pass'}),
+  S('SCANS','Checkmarx + Sonar run','tool',
+    'Security and quality scans run even on the emergency lane.',
+    'An urgent fix that introduces a vulnerability is a second incident.'),
+  S('REVIEW','Review Agent clears it','agent',
+    'Findings triaged \u2014 nothing actionable. Straight to the report.',
+    'Automated triage keeps the expedited lane genuinely fast.'),
+  S('REPORT','Consolidated report','tool',
+    'One page: tests green, scans clean, minimal diff.',
+    'The human sees exactly what changed, at a glance.'),
+  S('DECISION','Human merge decision','human',
+    'The developer merges \u2014 with full evidence in hand, despite the urgency.',
+    'Urgency with evidence beats urgency with hope.', {gate:true}),
+  S('HMG','Merge to HMG','code','Fix lands in homologation; the incident ticket updates automatically.','Ticket and code stay in lockstep even under pressure.'),
+  S('VALIDATE','HMG validation','agent','Smoke tests confirm the fix behaves in a prod-like environment.','The last automated check before the blast-radius decision.'),
+  S('PRODGATE','Promote to PROD?','human','The human makes the production call \u2014 expedited, but never skipped.','No incident justifies an unreviewed production deploy.', {gate:true}),
+  S('PROD','Hotfix shipped','code','The fix ships; the ticket closes; telemetry confirms recovery and feeds intake.','Fast lane, closed loop, full audit trail.'),
+];
+
+const CHORE = [
+  ...INTRO,
+  S('ROUTER','Routing Agent: CHORE','agent',
+    'Dependency bumps, config changes, cleanups \u2014 the router sends chores straight to build. No planning ceremony for low-risk mechanical work.',
+    'Process is proportional to risk. Chores get the loop\u2019s safety without the planning overhead.'),
+  ...LOOP_PASS(1),
+  S('TEST','Tests pass','agent',
+    'The full suite runs \u2014 mechanical changes still get complete verification.',
+    'Low ceremony, never low rigor.', {attempt:1, attState:'pass'}),
+  S('SCANS','Checkmarx + Sonar run','tool','Scans run as always \u2014 dependency bumps are a classic vulnerability vector.','Chores are exactly where supply-chain issues sneak in.'),
+  S('REVIEW','Review Agent clears it','agent','Nothing actionable in the findings; the report is assembled.','Automated review makes tiny PRs nearly free to verify.'),
+  S('REPORT','Consolidated report','tool','A short, boring report \u2014 the best kind.','A trustworthy pipeline makes routine work invisible.'),
+  S('DECISION','Human merge decision','human','A ten-second human review, then merge.','Even trivial changes get a human on the merge button.', {gate:true}),
+  S('HMG','Merge to HMG','code','The chore lands in homologation; ticket updates automatically.','Full traceability for even the smallest change.'),
+  S('VALIDATE','HMG validation','agent','Smoke tests confirm nothing regressed.','Cheap insurance on every merge.'),
+  S('PRODGATE','Promote to PROD?','human','Human gives the go-ahead for production.','Same gate, every lane.', {gate:true}),
+  S('PROD','Shipped and closed','code','Deployed, ticket closed, telemetry watching.','A dozen chores a day can flow through with near-zero human cost.'),
+];
+
+const PATHS = {feature:FEATURE, hotfix:HOTFIX, chore:CHORE};
+const ACTOR_LBL = {human:'HUMAN', agent:'AGENT', tool:'TOOL', code:'CODE / DEPLOY'};
+
+// ---------- Render SVG ----------
+const svg = document.getElementById('svg');
+const NS = 'http://www.w3.org/2000/svg';
+function el(t, attrs, parent){const e=document.createElementNS(NS,t); for(const k in attrs)e.setAttribute(k,attrs[k]); (parent||svg).appendChild(e); return e;}
+
+const defs = el('defs',{});
+for(const [id,color] of [['arr','#2A3654'],['arrLit','#F5B93D']]){
+  const m = el('marker',{id,viewBox:'0 0 10 10',refX:9,refY:5,markerWidth:7,markerHeight:7,orient:'auto-start-reverse'},defs);
+  el('path',{d:'M0,0 L10,5 L0,10 z',fill:color},m);
+}
+
+el('circle',{cx:630,cy:295,r:172,class:'loop-ring'});
+const ringLbl = el('text',{x:630,y:302,class:'loop-lbl','text-anchor':'middle'}); ringLbl.textContent='BUILD & VERIFY LOOP';
+
+const edgeEls = {};
+function edgePath(a,b,curve){
+  const A=NODES[a], B=NODES[b];
+  const ax=A.x, ay=A.y, bx=B.x, by=B.y;
+  const mx=(ax+bx)/2, my=(ay+by)/2;
+  const dx=bx-ax, dy=by-ay, len=Math.hypot(dx,dy)||1;
+  const nx=-dy/len, ny=dx/len;
+  const off=(curve||0)*len;
+  const trim = 38;
+  const t1=trim/len, t2=1-trim/len;
+  const p1x=ax+dx*t1+nx*off*.15, p1y=ay+dy*t1+ny*off*.15;
+  const p2x=ax+dx*t2+nx*off*.15, p2y=ay+dy*t2+ny*off*.15;
+  return `M${p1x},${p1y} Q${mx+nx*off},${my+ny*off} ${p2x},${p2y}`;
+}
+EDGES.forEach(([a,b,fb,curve])=>{
+  const p = el('path',{d:edgePath(a,b,curve),class:'edge'+(fb?' fb':''),'marker-end':'url(#arr)'});
+  edgeEls[a+'>'+b]=p;
+});
+
+const nodeEls = {};
+for(const id in NODES){
+  const n = NODES[id];
+  const g = el('g',{class:'node','data-id':id, tabindex:0, role:'button','aria-label':n.l});
+  g.style.color = C[n.k];
+  const h = 52;
+  el('rect',{x:n.x-n.w/2, y:n.y-h/2, width:n.w, height:h, rx:9,
+    fill:CD[n.k], stroke:C[n.k], 'stroke-width': n.gate?2.4:1.5},g);
+  if(n.gate){ el('rect',{x:n.x-n.w/2-4, y:n.y-h/2-4, width:n.w+8, height:h+8, rx:12, fill:'none', stroke:C[n.k], 'stroke-width':1, opacity:.4},g); }
+  const t1 = el('text',{x:n.x, y:n.y-4, 'text-anchor':'middle'},g); t1.textContent=n.l;
+  const t2 = el('text',{x:n.x, y:n.y+13, 'text-anchor':'middle', class:'sub'},g); t2.textContent=n.s;
+  const tt = el('title',{},g); tt.textContent=n.l+' \u2014 '+n.s;
+  nodeEls[id]=g;
+  g.addEventListener('click', ()=>{ if(mode==='tour') jumpToNode(id); });
+  g.addEventListener('keydown', e=>{if((e.key==='Enter'||e.key===' ')&&mode==='tour'){e.preventDefault();jumpToNode(id);}});
+}
+
+const selRing = el('rect',{class:'sel-ring', rx:13, fill:'none', opacity:0});
+
+const chip = el('g',{id:'chip'});
+el('circle',{class:'halo', cx:0, cy:0, r:8},chip);
+el('circle',{class:'core', cx:0, cy:0, r:7},chip);
+el('circle',{cx:0, cy:0, r:3, fill:'#141C2F'},chip);
+
+// ---------- Shared render helpers ----------
+const $=id=>document.getElementById(id);
+let mode='tour', path='feature';
+
+function paintNode(nodeId, prevNodeId, activeSet){
+  for(const id in nodeEls){
+    nodeEls[id].classList.toggle('off', activeSet ? !activeSet.has(id) : false);
+    nodeEls[id].classList.toggle('current', id===nodeId);
+  }
+  for(const k in edgeEls){edgeEls[k].classList.remove('lit'); edgeEls[k].setAttribute('marker-end','url(#arr)');}
+  if(prevNodeId){
+    const k1=prevNodeId+'>'+nodeId, k2=nodeId+'>'+prevNodeId;
+    const e=edgeEls[k1]||edgeEls[k2];
+    if(e){e.classList.add('lit'); e.setAttribute('marker-end','url(#arrLit)');}
+  }
+  const n=NODES[nodeId];
+  chip.setAttribute('transform',`translate(${n.x},${n.y-44})`);
+  selRing.setAttribute('x',n.x-n.w/2-7); selRing.setAttribute('y',n.y-26-7);
+  selRing.setAttribute('width',n.w+14); selRing.setAttribute('height',52+14);
+  selRing.setAttribute('opacity',1);
+}
+
+function setPanel({title, actor, gate, text, why, attempt, attState}){
+  const badge=$('badge');
+  badge.textContent = gate? ACTOR_LBL[actor]+' GATE' : ACTOR_LBL[actor];
+  badge.className='actor-badge '+actor+(gate?' gate':'');
+  $('narrTitle').textContent=title;
+  $('narrBody').textContent=text;
+  $('whyText').textContent=why;
+  const att=$('attempts');
+  if(attempt){
+    att.classList.add('on');
+    $('attN').textContent=attempt;
+    const stt=$('attState');
+    stt.textContent = attState==='fail'?'FAILED \u2014 feeding back':(attState==='pass'?'PASSED \u2713':'in progress\u2026');
+    stt.className = attState==='fail'?'fail':(attState==='pass'?'ok':'');
+  } else att.classList.remove('on');
+}
+
+// ============================================================
+// TOUR MODE
+// ============================================================
+let idx=0, timer=null;
+function steps(){return PATHS[path];}
+function pathNodes(){return new Set(steps().map(s=>s.node));}
+
+function renderTour(){
+  const st=steps(), s=st[idx];
+  paintNode(s.node, idx>0?st[idx-1].node:null, pathNodes());
+  setPanel(s);
+  $('stepCount').textContent=`STEP ${idx+1} / ${st.length} \u00B7 ${path.toUpperCase()} PATH`;
+  $('prog').style.width=((idx+1)/st.length*100)+'%';
+  $('prevBtn').disabled = idx===0;
+  $('nextBtn').disabled = idx===st.length-1;
+  if(idx===st.length-1) stopPlay();
+}
+function tourStats(){
+  const st=steps();
+  const gates=st.filter(s=>s.gate).length;
+  const agents=st.filter(s=>s.actor==='agent').length;
+  const loops=st.filter(s=>s.attState==='fail').length;
+  $('pathLine').innerHTML=
+    `PATH DESIGN \u2014 <b class="h">${gates}</b> HUMAN GATES \u00B7 <b class="a">${agents}</b> AGENT STEPS \u00B7 <b class="l">${loops}</b> AUTO LOOP${loops===1?'':'S'}`;
+}
+function go(i){idx=Math.max(0,Math.min(steps().length-1,i)); renderTour();}
+function jumpToNode(id){
+  const st=steps();
+  const i=st.findIndex(s=>s.node===id);
+  if(i>=0) go(i);
+}
+function stopPlay(){if(timer){clearInterval(timer);timer=null;$('playBtn').textContent='\u25B6 Play';}}
+const PLAY_MS=5200; let speed=1;
+function startTimer(){
+  if(timer)clearInterval(timer);
+  timer=setInterval(()=>{ if(idx<steps().length-1) go(idx+1); else stopPlay(); }, PLAY_MS/speed);
+}
+function togglePlay(){
+  if(timer){stopPlay();return;}
+  if(idx===steps().length-1) idx=-1;
+  $('playBtn').textContent='\u23F8 Pause';
+  startTimer();
+  go(idx+1<steps().length?idx+1:0);
+}
+
+// ============================================================
+// INTERACTIVE MODE \u2014 you are the developer
+// ============================================================
+let G=null; // game state
+function newGame(){
+  G={cur:'SN', prev:null, stepN:0, attempts:0, guidance:false, passedOnce:false,
+     agentCycles:0, humanDecisions:0, loops:0, planRevisions:0,
+     changeRequests:0, escalations:0, reviewLooped:false, done:false};
+  $('log').innerHTML='';
+  logLine('\u2014 NEW RUN \u00B7 '+path.toUpperCase()+' TICKET \u2014');
+}
+function logLine(txt, cls){
+  const d=document.createElement('div');
+  if(cls)d.className=cls;
+  d.textContent=txt;
+  $('log').appendChild(d);
+  $('log').scrollTop=$('log').scrollHeight;
+}
+function roll(p){return Math.random()<p;}
+
+function enter(node){
+  G.prev=G.cur; G.cur=node; G.stepN++;
+  renderGame();
+}
+
+// Each node: returns panel config + either {continue:nextNode} or {options:[...]} or {end:true}
+function nodeConfig(){
+  const n=G.cur, p=path;
+  switch(n){
+    case 'SN': return {
+      title:'A ticket lands in ServiceNow', actor:'tool',
+      text:`A ${p==='hotfix'?'production incident':'new '+p} ticket arrives. The Triage Agent will enrich it before any human sees it.`,
+      why:'One intake, one queue, one audit trail.',
+      cont:'TRIAGE', contLbl:'Let triage run \u2192'};
+    case 'TRIAGE': return {
+      title:'Triage Agent enriches the ticket', actor:'agent',
+      text:'Classified, prioritized, linked to related tickets \u2014 written back to ServiceNow automatically.',
+      why:'Grooming becomes continuous, not a weekly meeting.',
+      cont:'PICK', contLbl:'Continue \u2192'};
+    case 'PICK': return {
+      title: G.passedOnce ? 'Back to the queue' : 'The queue is yours', actor:'human', gate:true,
+      text: G.passedOnce
+        ? 'You passed on the last ticket. The next one in the triaged queue is just as ready \u2014 the Triage Agent keeps the queue groomed, so passing is cheap. Own this one?'
+        : 'You are the developer. This ticket is at the top of the triaged queue. Picking it makes you the owner of everything the agents do with it.',
+      why:'Agents never self-assign. Every cycle starts with a human choice.',
+      options:[
+        {lbl:'Pick this ticket', sub:'You own it from here', act:()=>{G.humanDecisions++; logLine('\u25B8 you picked the ticket','h'); enter('SCOUT');}},
+        {lbl:'Pass \u2014 look at the next one', sub:'Stays in the queue for someone else', neutral:true, act:()=>{G.humanDecisions++; G.passedOnce=true; logLine('\u25B8 you passed on a ticket','h'); enter('PICK');}},
+      ]};
+    case 'SCOUT': return {
+      title:'Scout Agent gathers context', actor:'agent',
+      text:'Related modules, coding guidelines, prior tickets, recent changes in the same area \u2014 packaged for everything downstream.',
+      why:'Agent quality is mostly a context problem. This is the cheapest quality lever.',
+      cont:'ROUTER', contLbl:'Continue \u2192'};
+    case 'ROUTER': {
+      const next = p==='feature'?'PLANNING':(p==='hotfix'?'HOTFIX':'BUILD');
+      return {
+        title:`Routed: ${p.toUpperCase()}`, actor:'agent',
+        text: p==='feature' ? 'Full planning lane: spec first, code later.'
+            : p==='hotfix' ? 'Expedited lane: planning skipped, safety gates kept.'
+            : 'Straight to build: no planning ceremony for low-risk mechanical work.',
+        why:'Process is proportional to risk.',
+        cont:next, contLbl:'Continue \u2192'};
+    }
+    case 'PLANNING': return {
+      title:'Planning Agent writes the spec', actor:'agent',
+      text: G.planRevisions>0
+        ? 'The agent reworks the spec using your feedback \u2014 new approach, same ticket context.'
+        : 'Approach, files to touch, test strategy, and a breakdown into PRs of \u2264700 lines.',
+      why:'A plan is the cheapest artifact to correct.',
+      cont:'PLANGATE', contLbl:'Spec ready \u2014 review it \u2192'};
+    case 'PLANGATE': return {
+      title:'Plan Review \u2014 your call', actor:'human', gate:true,
+      text: G.planRevisions>0
+        ? 'The revised spec is in front of you. Second look: does the approach hold up now?'
+        : 'The spec is in front of you. Not a single line of code exists yet \u2014 this is the cheapest possible moment to change direction.',
+      why:'Rejecting a plan costs seconds. Rejecting a PR costs a full agent cycle.',
+      options:[
+        {lbl:'Approve the plan', sub:'Agents start building', act:()=>{G.humanDecisions++; logLine('\u25B8 plan approved','h'); enter('BUILD');}},
+        {lbl:'Send back with feedback', sub:'Cheap now \u2014 expensive later', act:()=>{G.humanDecisions++; G.planRevisions++; logLine('\u25B8 plan sent back for revision','h'); enter('PLANNING');}},
+        {lbl:'Requirement is wrong', sub:'Back to ServiceNow \u2014 run ends', neutral:true, act:()=>{G.humanDecisions++; logLine('\u25B8 requirement rejected \u2192 back to intake','bad'); endRun('rescoped');}},
+      ]};
+    case 'HOTFIX': return {
+      title:'Hotfix Agent drafts a surgical fix', actor:'agent',
+      text:'Minimal change, fastest path \u2014 the proposal is ready for your eyes.',
+      why:'Smallest possible diff is the safest emergency move.',
+      cont:'HFGATE', contLbl:'Review the fix \u2192'};
+    case 'HFGATE': return {
+      title:'Quick Review \u2014 your call', actor:'human', gate:true,
+      text:'A focused diff, seconds to sanity-check. Production is degraded \u2014 but this gate still exists.',
+      why:'Even the fastest lane has a human on it before code runs anywhere.',
+      options:[
+        {lbl:'Looks right \u2014 go', sub:'Into the build loop', act:()=>{G.humanDecisions++; logLine('\u25B8 hotfix approach approved','h'); enter('BUILD');}},
+        {lbl:'Wrong approach \u2014 redo', sub:'Agent tries another angle', act:()=>{G.humanDecisions++; logLine('\u25B8 hotfix approach rejected','h'); enter('HOTFIX');}},
+      ]};
+    case 'BUILD': {
+      return {
+        title:`Build Agent \u2014 attempt ${G.attempts+1}`, actor:'agent',
+        text: G.attempts===0
+          ? 'The Build Agent implements the work in GitHub Actions and opens a draft PR.'
+          : 'The agent consumes the Fix Context package and pushes a corrected commit to the same draft PR.',
+        why: G.attempts===0 ? 'Small PRs keep everything downstream fast.' : 'Precise fix context, not guesswork.',
+        attempt:G.attempts+1, attState:'building',
+        cont:'TEST', contLbl:'Run the tests \u2192',
+        onLeave:()=>{G.attempts++; G.agentCycles++;}};
+    }
+    case 'TEST': {
+      const passP = G.guidance?0.95 : (G.attempts===1 ? (p==='feature'?0.5:0.75) : 0.8);
+      const passed = roll(passP);
+      if(passed){
+        logLine(`\u2713 tests passed (attempt ${G.attempts})`,'ok');
+        return {title:'Tests PASS', actor:'agent',
+          text:`Full suite green on attempt ${G.attempts}. On to the scanners.`,
+          why:'Verification is the loop\u2019s exit door \u2014 nothing leaves without it.',
+          attempt:G.attempts, attState:'pass',
+          cont:'SCANS', contLbl:'Continue to scans \u2192'};
+      }
+      logLine(`\u2717 tests failed (attempt ${G.attempts})`,'bad');
+      if(G.attempts>=3){
+        G.escalations++;
+        return {title:'Tests FAIL \u2014 budget exceeded', actor:'agent',
+          text:'Three attempts, three failures. The loop stops burning tokens and escalates to you.',
+          why:'The retry budget is the safety valve: hard problems reach a human fast.',
+          attempt:G.attempts, attState:'fail',
+          cont:'ESCALATE', contLbl:'Escalation incoming \u2192'};
+      }
+      G.loops++;
+      return {title:'Tests FAIL', actor:'agent',
+        text:`Failures on attempt ${G.attempts} of 3. The failure report heads to the Fix Context Hub \u2014 no human is paged.`,
+        why:'Failure is an expected, budgeted event.',
+        attempt:G.attempts, attState:'fail',
+        cont:'FIXHUB', contLbl:'Feed the Fix Hub \u2192'};
+    }
+    case 'FIXHUB': return {
+      title:'Fix Context Hub', actor:'tool',
+      text:'Stack traces, findings, comments \u2014 whatever the source, it becomes one structured package for the Build Agent.',
+      why:'One feedback channel for everything. No spaghetti.',
+      cont:'BUILD', contLbl:'Loop back to build \u2192'};
+    case 'ESCALATE': return {
+      title:'Escalation \u2014 your call', actor:'human', gate:true,
+      text:'The agent is stuck after 3 attempts. You\u2019ve seen the failure history. How do you unblock it?',
+      why:'This is where senior judgment beats brute-force retries.',
+      options:[
+        {lbl:'Pair with the agent', sub:'Add guidance to the fix context \u2014 high pass chance', act:()=>{G.humanDecisions++; G.guidance=true; logLine('\u25B8 you added guidance to the fix context','h'); enter('FIXHUB');}},
+        {lbl:'Take over manually', sub:'You fix it yourself, then rejoin the pipeline', neutral:true, act:()=>{G.humanDecisions++; logLine('\u25B8 manual fix by developer','h'); enter('SCANS');}},
+      ]};
+    case 'SCANS': {
+      return {title:'Checkmarx + Sonar run', actor:'tool',
+        text:'The existing pipeline does what it does today \u2014 SAST and the quality gate. Nothing replaced.',
+        why:'The agentic layer wraps around the tooling you already trust.',
+        cont:'REVIEW', contLbl:'Send reports to review \u2192'};
+    }
+    case 'REVIEW': {
+      const findings = !G.reviewLooped && roll(0.35);
+      if(findings){
+        G.reviewLooped=true; G.loops++;
+        logLine('\u2717 review: actionable findings \u2192 fix loop','bad');
+        return {title:'Review Agent finds issues', actor:'agent',
+          text:'After filtering false positives, real findings remain \u2014 a Sonar code smell and one Checkmarx medium. They go back through the Fix Hub automatically.',
+          why:'Scanner findings get the same self-correcting loop as test failures.',
+          cont:'FIXHUB', contLbl:'Loop the findings back \u2192'};
+      }
+      logLine('\u2713 review clean','ok');
+      return {title:'Review Agent: clean', actor:'agent',
+        text:'Findings triaged, false positives filtered, code-review pass done. The consolidated report is assembled.',
+        why:'You will review one curated page, not four dashboards.',
+        cont:'REPORT', contLbl:'Open the report \u2192'};
+    }
+    case 'REPORT': return {
+      title:'Consolidated report', actor:'tool',
+      text:`Tests: green (attempt ${G.attempts}). Checkmarx & Sonar: clean${G.reviewLooped?' after one fix loop':''}. Diff: small. Everything you need on one page.`,
+      why:'Evidence first, decision second.',
+      cont:'DECISION', contLbl:'Make the call \u2192'};
+    case 'DECISION': return {
+      title:'Merge Decision \u2014 your call', actor:'human', gate:true,
+      text:'The evidence is in front of you. This is the moment the old flow got wrong \u2014 rejecting used to mean starting over.',
+      why:'"Request changes" loops with full context. Nothing resets.',
+      options:[
+        {lbl:'Merge to HMG', sub:'Ship it to homologation', act:()=>{G.humanDecisions++; logLine('\u25B8 merged to HMG','h'); enter('HMG');}},
+        {lbl:'Request changes', sub:'Comments \u2192 Fix Hub, context preserved', act:()=>{G.humanDecisions++; G.changeRequests++; G.loops++; logLine('\u25B8 changes requested \u2192 fix loop','h'); enter('FIXHUB');}},
+      ].concat(p==='feature'?[{lbl:'Re-scope', sub:'Back to planning \u2014 approach was off', neutral:true, act:()=>{G.humanDecisions++; G.planRevisions++; logLine('\u25B8 re-scoped \u2192 planning','h'); enter('PLANNING');}}]:[])};
+    case 'HMG': return {
+      title:'Merged to HMG', actor:'code',
+      text:'The PR lands in homologation. The ServiceNow ticket updates itself.',
+      why:'Ticket state and code state never drift apart.',
+      cont:'VALIDATE', contLbl:'Run HMG validation \u2192'};
+    case 'VALIDATE': {
+      const fail = roll(0.15);
+      if(fail){
+        G.loops++;
+        logLine('\u2717 HMG validation failed \u2192 fix loop','bad');
+        return {title:'HMG validation FAILS', actor:'agent',
+          text:'A smoke test caught an environment-specific issue. It feeds the Fix Hub like any other failure \u2014 same loop, later stage.',
+          why:'Post-merge problems re-enter the machinery instead of spawning firefighting.',
+          cont:'FIXHUB', contLbl:'Loop it back \u2192'};
+      }
+      logLine('\u2713 HMG validation passed','ok');
+      return {title:'HMG validation passes', actor:'agent',
+        text:'Smoke tests and QA checks are green in a prod-like environment.',
+        why:'The last automated check before the blast-radius decision.',
+        cont:'PRODGATE', contLbl:'To the PROD gate \u2192'};
+    }
+    case 'PRODGATE': return {
+      title:'Promote to PROD \u2014 your call', actor:'human', gate:true,
+      text:'Everything is green. Agents prepared it all \u2014 but this button is yours alone.',
+      why:'The go/no-go for production is never automated. This line makes the whole system trustworthy.',
+      options:[
+        {lbl:'\uD83D\uDE80 Ship to PROD', sub:'The blast-radius decision', act:()=>{G.humanDecisions++; logLine('\u25B8 promoted to PROD','h'); enter('PROD');}},
+        {lbl:'Hold \u2014 validate again', sub:'One more pass through HMG checks', neutral:true, act:()=>{G.humanDecisions++; logLine('\u25B8 held for re-validation','h'); enter('VALIDATE');}},
+      ]};
+    case 'PROD': return {end:true};
+  }
+}
+
+function endRun(kind){
+  G.done=true;
+  paintNode(kind==='rescoped'?'SN':'PROD', G.prev, null);
+  const lessons=[];
+  if(G.planRevisions>0) lessons.push('You corrected course at planning \u2014 the cheapest point in the pipeline.');
+  if(G.escalations>0) lessons.push('The 3-attempt budget stopped an infinite token burn and got you involved fast.');
+  if(G.changeRequests>0) lessons.push('"Request changes" preserved every bit of context \u2014 no restart, unlike the old flow.');
+  if(G.loops>0 && lessons.length===0) lessons.push(`${G.loops} automatic loop${G.loops>1?'s':''} ran with zero human effort.`);
+  if(lessons.length===0) lessons.push('A clean run: a handful of human decisions, agents did everything else.');
+  setPanel({
+    title: kind==='rescoped' ? 'Run ended \u2014 back to intake' : '\uD83C\uDF89 Shipped to production',
+    actor: kind==='rescoped' ? 'tool' : 'code',
+    text: kind==='rescoped'
+      ? `You flagged the requirement as wrong before any code was written \u2014 the cheapest possible failure. The ticket returns to ServiceNow for re-scoping.`
+      : `Your ticket shipped in ${G.stepN} steps: ${G.humanDecisions} human decisions, ${G.agentCycles} agent build cycle${G.agentCycles!==1?'s':''}, ${G.loops} self-correcting loop${G.loops!==1?'s':''}. Ticket closed, telemetry watching.`,
+    why: lessons.join(' ')
+  });
+  $('stepCount').textContent=`RUN COMPLETE \u00B7 ${path.toUpperCase()} PATH`;
+  logLine(kind==='rescoped'?'\u2014 RUN ENDED: RE-SCOPED \u2014':'\u2014 SHIPPED TO PROD \u2014', kind==='rescoped'?'bad':'ok');
+  renderDecisions([{lbl:'\u21BB Run it again', sub:'Dice will roll differently', act:()=>{newGame(); enter('SN'); G.stepN=1;}}], 'RUN OVER \u2014');
+  updateGameStats();
+}
+
+function renderDecisions(options, label){
+  const box=$('decBtns'); box.innerHTML='';
+  $('decLabel').textContent = label || 'YOUR CALL, DEVELOPER \u2014';
+  options.forEach(o=>{
+    const b=document.createElement('button');
+    b.className='dec-btn'+(o.neutral?' neutral':'');
+    b.innerHTML=`${o.lbl}<small>${o.sub||''}</small>`;
+    b.onclick=o.act;
+    box.appendChild(b);
+  });
+  $('decisions').classList.add('on');
+}
+
+function updateGameStats(){
+  $('runLine').innerHTML=
+    `THIS RUN \u2014 <b class="h">${G.humanDecisions}</b> DECISIONS \u00B7 <b class="a">${G.agentCycles}</b> AGENT CYCLES \u00B7 <b class="l">${G.loops}</b> LOOP${G.loops===1?'':'S'}`;
+}
+
+function renderGame(){
+  const cfg=nodeConfig();
+  if(cfg.end){endRun('shipped'); return;}
+  paintNode(G.cur, G.prev, null);
+  setPanel(cfg);
+  $('stepCount').textContent=`STEP ${G.stepN} \u00B7 ${path.toUpperCase()} PATH \u00B7 YOU DECIDE`;
+  updateGameStats();
+  if(cfg.options){
+    renderDecisions(cfg.options);
+  } else {
+    renderDecisions([{lbl:cfg.contLbl||'Continue \u2192', sub:'', neutral:cfg.actor!=='human', act:()=>{ if(cfg.onLeave)cfg.onLeave(); enter(cfg.cont);}}],
+      cfg.actor==='human' ? 'YOUR CALL, DEVELOPER \u2014' : 'PIPELINE RUNNING \u2014');
+  }
+}
+
+// ============================================================
+// Mode & path switching
+// ============================================================
+function applyMode(){
+  const inter = mode==='interactive';
+  $('tourBtns').style.display = inter?'none':'flex';
+  $('progWrap').style.display = inter?'none':'block';
+  $('log').classList.toggle('on', inter);
+  $('decisions').classList.toggle('on', inter);
+  $('runLine').classList.toggle('on', inter);
+  $('hintTxt').textContent = inter ? 'decide with the buttons \u00B7 hover nodes for details \u00B7 dice roll differently every run' : 'click any node to jump \u00B7 \u2190 \u2192 keys work too \u00B7 hover nodes for details';
+  $('speedBtn').style.display = inter?'none':'block';
+  stopPlay();
+  tourStats();
+  if(inter){ newGame(); G.stepN=1; renderGame(); }
+  else { $('decisions').classList.remove('on'); idx=0; renderTour(); }
+}
+
+document.querySelectorAll('.tab.path').forEach(t=>{
+  t.onclick=()=>{
+    document.querySelectorAll('.tab.path').forEach(x=>{x.classList.remove('active'); x.setAttribute('aria-pressed','false');});
+    t.classList.add('active'); t.setAttribute('aria-pressed','true');
+    path=t.dataset.path;
+    applyMode();
+  };
+});
+document.querySelectorAll('.tab.mode').forEach(t=>{
+  t.onclick=()=>{
+    document.querySelectorAll('.tab.mode').forEach(x=>{x.classList.remove('active'); x.setAttribute('aria-pressed','false');});
+    t.classList.add('active'); t.setAttribute('aria-pressed','true');
+    mode=t.dataset.mode;
+    applyMode();
+  };
+});
+$('speedBtn').onclick=()=>{
+  speed = speed===1?2:1;
+  $('speedBtn').textContent = speed+'\u00D7';
+  if(timer) startTimer();
+};
+
+$('prevBtn').onclick=()=>{stopPlay();go(idx-1);};
+$('nextBtn').onclick=()=>{stopPlay();go(idx+1);};
+$('playBtn').onclick=togglePlay;
+document.addEventListener('keydown',e=>{
+  if(mode!=='tour')return;
+  if(e.key==='ArrowRight'){stopPlay();go(idx+1);}
+  if(e.key==='ArrowLeft'){stopPlay();go(idx-1);}
+});
+
+tourStats(); renderTour();
+</script>
+</body>
+</html>
