@@ -8,7 +8,14 @@
       "Bash('/c/Program Files/Google/Chrome/Application/chrome.exe' --headless --disable-gpu --no-sandbox --window-size=1280,6000 --screenshot=/tmp/qeb-screenshots/mvergara-full2.png --virtual-time-budget=4000 --hide-scrollbars http://localhost:4599)",
       "Bash('/c/Program Files/Google/Chrome/Application/chrome.exe' --headless --disable-gpu --no-sandbox --window-size=1280,900 --screenshot=/tmp/qeb-screenshots/mvergara-natural.png --virtual-time-budget=4000 --hide-scrollbars http://localhost:4599)",
       "Bash(identify \"/tmp/qeb-screenshots/mvergara-natural.png\")",
-      "Bash(npx --yes playwright screenshot --viewport-size=1280,900 --full-page \"http://localhost:4599\" \"/tmp/qeb-screenshots/pw-full.png\")"
+      "Bash(npx --yes playwright screenshot --viewport-size=1280,900 --full-page \"http://localhost:4599\" \"/tmp/qeb-screenshots/pw-full.png\")",
+      "Bash(mkdir -p /tmp/badge-screenshots)",
+      "Bash(npx --yes playwright screenshot --viewport-size=1280,1600 --full-page \"https://badgecert.com/bc/html/groupbadges.html?k=aTFGdmZKOEhQR3M2K0YxMnU3ZXAzRGs0cTkybW0yb2Q\" \"/tmp/badge-screenshots/badges.png\")",
+      "Bash(node badge-click.js)",
+      "Bash(node badge-inspect.js)",
+      "Bash(node -e ' *)",
+      "Bash(npx --yes playwright screenshot --viewport-size=1280,1200 --wait-for-selector=\".cert-badge\" --wait-for-timeout=1500 \"http://localhost:4599\" \"/tmp/qeb-screenshots/certified.png\")",
+      "Bash(tasklist)"
     ]
   }
 }
