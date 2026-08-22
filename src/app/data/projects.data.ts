@@ -24,6 +24,27 @@ export interface Project {
 
 export const PROJECTS: Project[] = [
   {
+    id: 'qual-e-o-bairro',
+    name: 'Qual É o Bairro?',
+    url: 'https://qualeobairro.com.br',
+    pillar: 'Geospatial Engineering & Game Design',
+    pillarVar: '--color-pillar-geo',
+    hook: 'Rio de Janeiro neighborhood-guessing game — border-to-border distance for all 166 bairros is computed once at build time into a static matrix, so every guess is a zero-latency client-side lookup with no geometry library shipped to the browser.',
+    rationale:
+      'Distance and adjacency for all 166×166 bairro pairs are precomputed at build time with Turf and committed as static JSON, keyed by codbairro — the client does a plain object lookup, never a geometry calculation, and never loads a geometry library. The daily answer stays server-side only: bootstrap returns puzzle metadata and the caller\'s own recorded progress, never an answer verifier, and the server derives rank and elapsed time from its own log of accepted guesses rather than trusting anything the client reports — so the answer is neither in the bundle nor recoverable from the network tab before a win.',
+    nodes: [
+      { id: 'geo', label: 'IPP GeoJSON', x: 10, y: 38 },
+      { id: 'build', label: 'Turf Matrix', x: 120, y: 38 },
+      { id: 'render', label: 'd3-geo SVG', x: 120, y: 102 },
+      { id: 'edge', label: 'Supabase Edge Fns', x: 10, y: 102 },
+    ],
+    edges: [
+      { from: 'geo', to: 'build' },
+      { from: 'build', to: 'render' },
+      { from: 'render', to: 'edge' },
+    ],
+  },
+  {
     id: 'enp-secure-chat',
     name: 'ENP Secure Chat',
     url: 'https://enpsecurechat.com',

@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mkdir -p /tmp/qeb-screenshots)",
+      "Bash('/c/Program Files/Google/Chrome/Application/chrome.exe' --headless --disable-gpu --no-sandbox --window-size=1280,1400 --screenshot=/tmp/qeb-screenshots/full.png --virtual-time-budget=3000 --hide-scrollbars http://localhost:4173)",
+      "Bash('/c/Program Files/Google/Chrome/Application/chrome.exe' --headless --disable-gpu --no-sandbox --window-size=1280,4200 --screenshot=/tmp/qeb-screenshots/full.png --virtual-time-budget=3000 --hide-scrollbars http://localhost:4173)",
+      "Bash('/c/Program Files/Google/Chrome/Application/chrome.exe' --headless --disable-gpu --no-sandbox --window-size=1280,2600 --screenshot=/tmp/qeb-screenshots/mvergara-full.png --virtual-time-budget=4000 --hide-scrollbars http://localhost:4599)",
+      "Bash('/c/Program Files/Google/Chrome/Application/chrome.exe' --headless --disable-gpu --no-sandbox --window-size=1280,6000 --screenshot=/tmp/qeb-screenshots/mvergara-full2.png --virtual-time-budget=4000 --hide-scrollbars http://localhost:4599)",
+      "Bash('/c/Program Files/Google/Chrome/Application/chrome.exe' --headless --disable-gpu --no-sandbox --window-size=1280,900 --screenshot=/tmp/qeb-screenshots/mvergara-natural.png --virtual-time-budget=4000 --hide-scrollbars http://localhost:4599)",
+      "Bash(identify \"/tmp/qeb-screenshots/mvergara-natural.png\")",
+      "Bash(npx --yes playwright screenshot --viewport-size=1280,900 --full-page \"http://localhost:4599\" \"/tmp/qeb-screenshots/pw-full.png\")"
+    ]
+  }
+}

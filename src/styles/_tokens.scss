@@ -22,6 +22,14 @@
   --color-pillar-ai:         #a855f7;
   --color-pillar-infra:      #cbd5e1;
   --color-pillar-edge:       #ec4899;
+  // Lime, not the more obvious map-green or warm/terrain tone: it sits ~46°
+  // from both --color-status-healthy and --color-status-warning on the hue
+  // wheel, the largest open gap left once all seven other tokens above are
+  // placed. This card never sits in a mission-control panel next to a status
+  // dot (see project memory), so the risk this guards against is milder than
+  // the pillar-security/status-danger collision above — still worth keeping
+  // the hue clear on principle.
+  --color-pillar-geo:        #84cc16;
 
   // Typography
   --font-sans:   'Inter', system-ui, -apple-system, sans-serif;

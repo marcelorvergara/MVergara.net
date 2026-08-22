@@ -65,6 +65,20 @@ main {
   grid-template-columns: repeat(2, 1fr);
   gap: var(--space-6);
 
+  // The first card is the "featured" slot (newest/highlighted project) and
+  // always spans the full row. The remaining cards fill a plain 2-up grid;
+  // if that remainder is odd — i.e. the total project count is even, since
+  // the featured card already claimed one — the trailing card spans both
+  // columns too, so it never sits alone next to an empty half-row. Both
+  // rules self-correct automatically as projects are added or reordered.
+  > *:first-child {
+    grid-column: 1 / -1;
+  }
+
+  > *:last-child:nth-child(even) {
+    grid-column: 1 / -1;
+  }
+
   @media (max-width: 768px) {
     grid-template-columns: 1fr;
   }
