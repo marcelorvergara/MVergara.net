@@ -1,4 +1,5 @@
-import { Component, OnInit, OnDestroy, inject, signal } from '@angular/core';
+import { Component, OnInit, OnDestroy, HostListener, inject, signal } from '@angular/core';
+import { DOCUMENT } from '@angular/common';
 import { StatusService, ServiceHealth, PipelineHealth, LlmHealth, CostHealth, WidgetState } from '../../services/status.service';
 import { SparklineComponent } from './sparkline/sparkline';
 import { PipelineHealthComponent } from './pipeline-health/pipeline-health';
@@ -6,7 +7,10 @@ import { LlmHealthComponent } from './llm-health/llm-health';
 import { CostHealthComponent } from './cost-health/cost-health';
 import { formatDuration } from '../../utils/format-duration';
 
-const CHECK_INTERVAL_S = 300;
+// Matches Monitoring Links' 30-min check cadence (its cron.yaml) — polling faster
+// only re-reads unchanged data, and each poll that lands after a 5-min idle gap
+// wakes Monitoring Links' Neon Postgres compute, which is billed per CU-hour.
+const CHECK_INTERVAL_S = 1800;
 const COUNTDOWN_TICK_S = 10;
 
 @Component({
@@ -17,6 +21,7 @@ const COUNTDOWN_TICK_S = 10;
 })
 export class MissionControl implements OnInit, OnDestroy {
   private readonly statusService = inject(StatusService);
+  private readonly document = inject(DOCUMENT);
 
   protected readonly state = signal<WidgetState>('loading');
   protected readonly services = signal<ServiceHealth[]>([]);
@@ -27,6 +32,7 @@ export class MissionControl implements OnInit, OnDestroy {
   protected readonly secondsUntilNextCheck = signal(CHECK_INTERVAL_S);
 
   private countdownHandle?: ReturnType<typeof setInterval>;
+  private lastLoadedAt = 0;
 
   ngOnInit(): void {
     this.load();
@@ -48,7 +54,21 @@ export class MissionControl implements OnInit, OnDestroy {
     this.load();
   }
 
+  // A tab left open in the background would otherwise keep polling forever.
+  // On return, refetch only if the shown data is past a full interval old —
+  // plain tab-switching shouldn't trigger a request.
+  @HostListener('document:visibilitychange')
+  protected onVisibilityChange(): void {
+    if (this.document.hidden) return;
+    if (Date.now() - this.lastLoadedAt >= CHECK_INTERVAL_S * 1000) {
+      this.secondsUntilNextCheck.set(CHECK_INTERVAL_S);
+      this.load();
+    }
+  }
+
   private tick(): void {
+    // Countdown freezes while the tab is hidden; onVisibilityChange catches up.
+    if (this.document.hidden) return;
     const remaining = this.secondsUntilNextCheck() - COUNTDOWN_TICK_S;
     if (remaining > 0) {
       this.secondsUntilNextCheck.set(remaining);
@@ -65,6 +85,7 @@ export class MissionControl implements OnInit, OnDestroy {
   }
 
   private load(): void {
+    this.lastLoadedAt = Date.now();
     this.statusService.fetchStatus().subscribe({
       next: (response) => {
         this.services.set(response.services);

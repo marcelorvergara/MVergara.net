@@ -30,7 +30,7 @@ Output directory for Cloudflare Pages: `dist/mvergara-net/browser`
 | `src/styles/_tokens.scss` | All CSS custom properties (colours, spacing, radius, transitions) |
 | `src/app/data/projects.data.ts` | Static data for all 4 project cards (hook, rationale, pipeline nodes) |
 | `src/app/components/project-card/` | Card with click-to-pin overlay showing pipeline + rationale |
-| `src/app/components/mission-control/` | Live status widget (StatusService + circuit breaker) |
+| `src/app/components/mission-control/` | Live status widget (StatusService + circuit breaker). Polls every 30 min (`CHECK_INTERVAL_S = 1800`, matching Monitoring Links' check cadence); the countdown freezes while the tab is hidden, and on return it refetches only if the data is a full interval old. Don't shorten this — each poll after a 5-min idle gap wakes Monitoring Links' Neon Postgres, which is billed per CU-hour |
 | `src/app/components/mission-control/pipeline-health/` | Sub-panel rendering the `pipeline_health` block (Pub/Sub topic rows: queued, oldest-unacked, ack/nack, DLQ badge) |
 | `src/app/components/mission-control/llm-health/` | Sub-panel rendering the `llm_health` block (per-service LLM telemetry rows: requests, latency, tokens, cost, error rate) |
 | `src/app/components/mission-control/cost-health/` | Sub-panel rendering the `cost_health` block (per-project GCP billing rows: MTD net cost, previous month, BRL-formatted via `Intl.NumberFormat`) |
