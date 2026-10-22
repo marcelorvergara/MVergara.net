@@ -12,6 +12,14 @@ export interface Credential {
 
 export const CERTIFICATIONS: Credential[] = [
   {
+    name: 'Professional Cloud Architect',
+    type: 'certification',
+    issuer: 'Google Cloud',
+    date: 'Oct 2028',
+    dateKind: 'valid-through',
+    verifyUrl: 'https://www.credly.com/badges/79f2e875-6baa-45ac-8950-46adbaeeefcd/public_url',
+  },
+  {
     name: 'Associate Cloud Engineer',
     type: 'certification',
     issuer: 'Google Cloud',
